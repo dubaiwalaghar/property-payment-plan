@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment Plan Explorer — Taher Betwala, Dubai</title>
+<meta name="description" content="Select a property and see its exact payment plan and downpayment breakdown.">
+
+<!--
+  =====================================================================
+  HOW TO ADD / EDIT PROPERTIES
+  =====================================================================
+  Scroll down to the block that starts with:  const PROPERTIES = [
+  Each property is one object. Copy an existing one and change the
+  values. Three payment plan "type"s are supported — pick whichever
+  matches what the developer actually offers:
+
+  1) type: "milestone"
+     Client pays a % at booking, then more %s at construction stages,
+     then the rest on handover. Use this for classic construction-linked
+     plans (e.g. 10/10/10/10/10/50 on handover).
+
+  2) type: "monthly"
+     Client pays a % at booking, then a fixed % of the price every
+     month until handover (e.g. "1% per month").
+
+  3) type: "posthandover"
+     Client pays a % at booking + more % during construction, then
+     pays off the remaining % in equal monthly installments AFTER
+     handover, over a set number of years.
+
+  All figures are percentages of the property price — the page does
+  the AED math live, so you never have to calculate amounts by hand.
+  =====================================================================
+-->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg: #10151c;
+    --surface: #171f28;
+    --surface-2: #1e2733;
+    --line: #33404f;
+    --line-soft: #232d39;
+    --gold: #c9a66b;
+    --gold-dim: #8f7852;
+    --teal: #45a893;
+    --text: #eeeae1;
+    --text-muted: #93a0b2;
+    --text-faint: #5c6779;
+    --radius: 2px;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection{ background: var(--gold); color: #10151c; }
+  a{ color: inherit; }
+
+  .mono{ font-family: 'IBM Plex Mono', monospace; }
+  .serif{ font-family: 'Fraunces', serif; }
+
+  :focus-visible{
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation: none !important; transition: none !important; }
+  }
+
+  /* ---------- layout shells ---------- */
+  .wrap{
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  header.site{
+    border-bottom: 1px solid var(--line-soft);
+    padding: 22px 0;
+  }
+  header.site .wrap{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap: 12px;
+  }
+  .brand-mark{
+    width: 34px; height: 34px;
+    border: 1px solid var(--gold-dim);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces', serif;
+    font-size: 15px;
+    color: var(--gold);
+    flex: none;
+  }
+  .brand-name{
+    font-size: 14px;
+    letter-spacing: .04em;
+  }
+  .brand-name span{
+    display:block;
+    color: var(--text-faint);
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+  .site-cta{
+    font-size: 12.5px;
+    color: var(--text-muted);
+    letter-spacing: .03em;
+  }
+
+  /* ---------- hero ---------- */
+  .hero{
+    padding: 72px 0 56px;
+    border-bottom: 1px solid var(--line-soft);
+    position: relative;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    display:flex; align-items:center; gap: 10px;
+    margin-bottom: 22px;
+  }
+  .eyebrow::before{
+    content:"";
+    width: 22px; height: 1px;
+    background: var(--gold-dim);
+  }
+  .hero h1{
+    font-family:'Fraunces', serif;
+    font-weight: 500;
+    font-size: clamp(34px, 5vw, 56px);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin: 0 0 22px;
+    max-width: 14ch;
+  }
+  .hero h1 em{
+    font-style: italic;
+    color: var(--gold);
+  }
+  .hero p{
+    color: var(--text-muted);
+    font-size: 16px;
+    line-height: 1.6;
+    max-width: 46ch;
+    margin: 0;
+  }
+
+  /* ---------- property grid ---------- */
+  .section{ padding: 56px 0; }
+  .section-head{
+    display:flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+  }
+  .section-head h2{
+    font-family:'Fraunces', serif;
+    font-weight: 500;
+    font-size: 24px;
+    margin: 0;
+  }
+  .section-head .count{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-faint);
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1px;
+    background: var(--line-soft);
+    border: 1px solid var(--line-soft);
+  }
+
+  .card{
+    background: var(--surface);
+    padding: 0;
+    cursor: pointer;
+    display:flex;
+    flex-direction: column;
+    position: relative;
+    transition: background .15s ease;
+    text-align: left;
+    border: none;
+    color: inherit;
+    font-family: inherit;
+    width: 100%;
+  }
+  .card:hover, .card:focus-visible{ background: var(--surface-2); }
+
+  .card-visual{
+    height: 140px;
+    position: relative;
+    border-bottom: 1px solid var(--line-soft);
+    overflow: hidden;
+  }
+  .card-visual svg{ width: 100%; height: 100%; display:block; }
+
+  .card-corner{
+    position:absolute; width:10px; height:10px;
+    border-top: 1px solid var(--gold-dim);
+    border-left: 1px solid var(--gold-dim);
+    top: 10px; left: 10px;
+    opacity: .8;
+  }
+
+  .card-body{
+    padding: 18px 20px 20px;
+    display:flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+  }
+  .card-developer{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--teal);
+  }
+  .card-name{
+    font-family:'Fraunces', serif;
+    font-size: 19px;
+    line-height: 1.25;
+    margin: 0;
+  }
+  .card-meta{
+    font-size: 12.5px;
+    color: var(--text-muted);
+    display:flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .card-meta span:not(:last-child)::after{
+    content: "·";
+    margin-left: 8px;
+    color: var(--text-faint);
+  }
+  .card-foot{
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: 1px solid var(--line-soft);
+    display:flex;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+  .card-price{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 17px;
+    color: var(--text);
+  }
+  .card-price small{
+    display:block;
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  .card-arrow{
+    font-size: 12px;
+    color: var(--gold);
+    letter-spacing: .02em;
+    white-space: nowrap;
+  }
+
+  /* ---------- detail view ---------- */
+  #detail{ display:none; }
+  #detail.active{ display:block; }
+  #catalog.hidden{ display:none; }
+
+  .back-link{
+    display:inline-flex;
+    align-items:center;
+    gap: 8px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .04em;
+    cursor: pointer;
+    padding: 6px 0;
+    margin-bottom: 28px;
+  }
+  .back-link:hover{ color: var(--gold); }
+
+  .detail-header{
+    display:flex;
+    gap: 28px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--line-soft);
+    flex-wrap: wrap;
+  }
+  .detail-visual{
+    width: 220px;
+    height: 160px;
+    flex: none;
+    border: 1px solid var(--line-soft);
+  }
+  .detail-visual svg{ width:100%; height:100%; display:block; }
+  .detail-info{ flex: 1; min-width: 240px; }
+  .detail-developer{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 8px;
+  }
+  .detail-info h2{
+    font-family:'Fraunces', serif;
+    font-weight: 500;
+    font-size: 30px;
+    margin: 0 0 12px;
+  }
+  .detail-meta{
+    color: var(--text-muted);
+    font-size: 13.5px;
+    margin-bottom: 18px;
+  }
+  .detail-meta span:not(:last-child)::after{
+    content: "·";
+    margin: 0 8px;
+    color: var(--text-faint);
+  }
+  .detail-price{
+    display:flex;
+    gap: 30px;
+    flex-wrap: wrap;
+  }
+  .price-block small{
+    display:block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 5px;
+  }
+  .price-block strong{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight: 500;
+    font-size: 22px;
+    color: var(--gold);
+  }
+
+  /* ---------- ledger timeline (signature element) ---------- */
+  .ledger{
+    padding: 48px 0 40px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .ledger-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 36px;
+  }
+  .ledger-rail{
+    position: relative;
+    height: 2px;
+    background: var(--line);
+    margin: 0 6px;
+  }
+  .ledger-fill{
+    position:absolute;
+    left:0; top:0; height: 100%;
+    background: var(--gold);
+    transition: width .4s ease;
+  }
+  .ledger-nodes{
+    position: relative;
+    height: 0;
+  }
+  .ledger-node{
+    position:absolute;
+    top: -5px;
+    transform: translateX(-50%);
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--line);
+  }
+  .ledger-node.covered{
+    border-color: var(--gold);
+    background: var(--gold);
+  }
+  .ledger-tags{
+    position: relative;
+    margin-top: 22px;
+    height: 92px;
+  }
+  .ledger-tag{
+    position: absolute;
+    transform: translateX(-50%);
+    text-align: center;
+    width: 108px;
+  }
+  .ledger-tag .pct{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--gold);
+    margin-bottom: 3px;
+  }
+  .ledger-tag .amt{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .ledger-tag .lbl{
+    font-size: 10.5px;
+    color: var(--text-muted);
+    line-height: 1.35;
+  }
+
+  /* ---------- budget / fit panel ---------- */
+  .fit-panel{
+    padding: 44px 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .fit-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+  }
+  @media (max-width: 720px){ .fit-grid{ grid-template-columns: 1fr; } }
+
+  .field{
+    display:flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .field label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .field .input-row{
+    display:flex;
+    align-items:center;
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .field .input-row span{
+    padding: 0 12px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--text-faint);
+    border-right: 1px solid var(--line);
+  }
+  .field input{
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    padding: 13px 14px;
+    min-width: 0;
+  }
+  .field input:focus{ outline: none; }
+  .field .hint{
+    font-size: 11.5px;
+    color: var(--text-faint);
+  }
+
+  .result-box{
+    background: var(--surface);
+    border: 1px solid var(--line-soft);
+    padding: 22px 24px;
+    margin-top: 28px;
+  }
+  .result-box .status{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display:flex;
+    align-items:center;
+    gap: 8px;
+  }
+  .status-dot{ width:7px; height:7px; border-radius:50%; background: var(--teal); flex:none; }
+  .status-dot.warn{ background: var(--gold); }
+  .result-lines{ display:flex; flex-direction:column; gap: 10px; }
+  .result-line{
+    display:flex;
+    justify-content: space-between;
+    gap: 16px;
+    font-size: 13.5px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--line-soft);
+  }
+  .result-line:last-child{ border-bottom: none; padding-bottom: 0; }
+  .result-line .k{ color: var(--text-muted); }
+  .result-line .v{ font-family:'IBM Plex Mono', monospace; color: var(--text); text-align: right; }
+  .result-line .v.hl{ color: var(--gold); }
+
+  /* ---------- schedule table ---------- */
+  .schedule{ padding: 44px 0 64px; }
+  table{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  thead th{
+    text-align: left;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    font-weight: 500;
+    padding: 0 14px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  tbody td{
+    padding: 13px 14px;
+    border-bottom: 1px solid var(--line-soft);
+    color: var(--text-muted);
+  }
+  tbody tr:last-child td{ border-bottom: none; }
+  tbody td.stage{ color: var(--text); }
+  tbody td.num{ font-family:'IBM Plex Mono', monospace; color: var(--text); text-align: right; }
+  tbody tr.covered td.num{ color: var(--gold); }
+
+  .contact-strip{
+    border-top: 1px solid var(--line-soft);
+    background: var(--surface);
+    padding: 40px 0;
+  }
+  .contact-strip .wrap{
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .contact-strip h3{
+    font-family:'Fraunces', serif;
+    font-weight: 500;
+    font-size: 20px;
+    margin: 0 0 6px;
+  }
+  .contact-strip p{
+    color: var(--text-muted);
+    font-size: 13px;
+    margin: 0;
+  }
+  .contact-btns{
+    display:flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .btn-wa, .btn-call{
+    display:inline-flex;
+    align-items:center;
+    gap: 8px;
+    padding: 12px 20px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: .05em;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .btn-wa{ background: #25D366; color: #fff; }
+  .btn-call{ background: none; border: 1px solid var(--line); color: var(--text); }
+  .btn-wa:hover{ background: #1cb85a; }
+  .btn-call:hover{ border-color: var(--gold); color: var(--gold); }
+
+  footer.site{
+    border-top: 1px solid var(--line-soft);
+    padding: 26px 0;
+    color: var(--text-faint);
+    font-size: 12px;
+  }
+  footer.site .wrap{
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  footer.site .foot-name{
+    color: var(--text-muted);
+  }
+  footer.site .foot-name strong{ color: var(--text); font-weight: 500; }
+
+  @media (max-width: 560px){
+    .wrap{ padding: 0 18px; }
+    .detail-header{ gap: 18px; }
+    .detail-visual{ width: 100%; height: 140px; }
+    .detail-price{ gap: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap">
+    <div class="brand">
+      <div class="brand-mark">T</div>
+      <div class="brand-name">Taher Betwala
+        <span>New Heights Real Estate · Dubai</span>
+      </div>
+    </div>
+    <div class="site-cta">Select a property to view its exact payment plan →</div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section id="catalog">
+    <div class="hero">
+      <div class="eyebrow">Payment Plan Explorer</div>
+      <h1>Pick a property. See <em>exactly</em> what it costs, and when.</h1>
+      <p>Every figure below is calculated directly from each developer's real payment structure — no estimates. Enter your available downpayment to see precisely what it covers.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <h2>Available properties</h2>
+        <div class="count mono" id="propCount">7 options</div>
+      </div>
+      <div class="grid" id="grid"></div>
+    </div>
+  </section>
+
+  <section id="detail">
+    <button class="back-link" id="backBtn">← Back to all properties</button>
+
+    <div class="detail-header">
+      <div class="detail-visual" id="detailVisual"></div>
+      <div class="detail-info">
+        <div class="detail-developer" id="detailDeveloper"></div>
+        <h2 id="detailName"></h2>
+        <div class="detail-meta" id="detailMeta"></div>
+        <div class="detail-price">
+          <div class="price-block">
+            <small>Total Price</small>
+            <strong id="detailPrice"></strong>
+          </div>
+          <div class="price-block">
+            <small>Handover</small>
+            <strong id="detailHandover" style="color: var(--text); font-size: 18px;"></strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ledger">
+      <div class="ledger-label">Payment structure</div>
+      <div class="ledger-rail" id="ledgerRail">
+        <div class="ledger-fill" id="ledgerFill"></div>
+        <div class="ledger-nodes" id="ledgerNodes"></div>
+      </div>
+      <div class="ledger-tags" id="ledgerTags"></div>
+    </div>
+
+    <div class="fit-panel">
+      <div class="section-head" style="margin-bottom:22px;">
+        <h2>Check what fits your budget</h2>
+      </div>
+      <div class="fit-grid">
+        <div class="field">
+          <label for="downpaymentInput">Available downpayment</label>
+          <div class="input-row">
+            <span id="currencyTag1">AED</span>
+            <input type="number" id="downpaymentInput" placeholder="e.g. 300,000" min="0" step="1000">
+          </div>
+          <div class="hint">The amount you can pay upfront, before or at booking.</div>
+        </div>
+        <div class="field">
+          <label for="monthlyInput">Comfortable monthly budget</label>
+          <div class="input-row">
+            <span id="currencyTag2">AED</span>
+            <input type="number" id="monthlyInput" placeholder="e.g. 8,000" min="0" step="500">
+          </div>
+          <div class="hint">Used for monthly or post-handover installment plans.</div>
+        </div>
+      </div>
+
+      <div class="result-box" id="resultBox"></div>
+    </div>
+
+    <div class="schedule">
+      <div class="section-head" style="margin-bottom:20px;">
+        <h2>Full schedule</h2>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Stage</th><th style="text-align:right">% of price</th><th style="text-align:right">Amount</th></tr>
+        </thead>
+        <tbody id="scheduleBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<div class="contact-strip">
+  <div class="wrap">
+    <div>
+      <h3>Ready to move on one of these?</h3>
+      <p>Message Taher directly with the property and figures you're looking at.</p>
+    </div>
+    <div class="contact-btns">
+      <a class="btn-wa" href="https://wa.me/971556472153?text=Hi%20Taher!%20I%20was%20checking%20the%20payment%20plan%20explorer%20and%20wanted%20to%20discuss%20a%20property." target="_blank" rel="noopener">💬 WhatsApp</a>
+      <a class="btn-call" href="tel:+971556472153">📞 Call</a>
+    </div>
+  </div>
+</div>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-name"><strong>Taher Betwala</strong> · Property Consultant, Dubai · New Heights Real Estate</div>
+    <div>Payment figures are calculated from each developer's stated plan structure at time of listing. Always confirm final terms with the developer's official sales contract.</div>
+  </div>
+</footer>
+
+<script>
+/* =====================================================================
+   PROPERTY DATA
+   Edit / add entries here. See the schema notes in the <head> comment.
+   ===================================================================== */
+const PROPERTIES = [
+  {
+    id: "p1",
+    name: "Marina Vista Residences",
+    developer: "Emaar Properties",
+    location: "Dubai Marina",
+    bedrooms: "2 BR",
+    size: "1,150 sqft",
+    price: 1850000,
+    currency: "AED",
+    handover: "Q4 2027",
+    accent: "#c9a66b",
+    plan: {
+      type: "milestone",
+      booking: { percent: 10, label: "Booking / Reservation" },
+      milestones: [
+        { percent: 15, label: "20% construction complete" },
+        { percent: 15, label: "40% construction complete" },
+        { percent: 15, label: "60% construction complete" },
+        { percent: 15, label: "80% construction complete" },
+        { percent: 30, label: "On handover" }
+      ]
+    }
+  },
+  {
+    id: "p2",
+    name: "Creek Horizon Tower",
+    developer: "Sobha Realty",
+    location: "Dubai Creek Harbour",
+    bedrooms: "1 BR",
+    size: "780 sqft",
+    price: 1250000,
+    currency: "AED",
+    handover: "Q2 2028",
+    accent: "#45a893",
+    plan: {
+      type: "monthly",
+      booking: { percent: 10, label: "Booking / Reservation" },
+      monthlyPercent: 1,
+      months: 42
+    }
+  },
+  {
+    id: "p3",
+    name: "Palm Coral Villas",
+    developer: "Nakheel",
+    location: "Palm Jumeirah",
+    bedrooms: "4 BR Villa",
+    size: "4,200 sqft",
+    price: 7900000,
+    currency: "AED",
+    handover: "Ready",
+    accent: "#c9a66b",
+    plan: {
+      type: "posthandover",
+      booking: { percent: 20, label: "Booking / Reservation" },
+      duringConstruction: { percent: 50, label: "During construction, in stages" },
+      postHandover: { percent: 30, years: 2, label: "Post-handover, equal monthly installments" }
+    }
+  },
+  {
+    id: "p4",
+    name: "Meydan Skyline Loft",
+    developer: "Azizi Developments",
+    location: "Meydan",
+    bedrooms: "Studio",
+    size: "480 sqft",
+    price: 690000,
+    currency: "AED",
+    handover: "Q1 2027",
+    accent: "#45a893",
+    plan: {
+      type: "milestone",
+      booking: { percent: 5, label: "Booking / Reservation" },
+      milestones: [
+        { percent: 15, label: "On construction start" },
+        { percent: 20, label: "50% construction complete" },
+        { percent: 60, label: "On handover" }
+      ]
+    }
+  },
+  {
+    id: "p5",
+    name: "Business Bay Central",
+    developer: "Damac Properties",
+    location: "Business Bay",
+    bedrooms: "3 BR",
+    size: "1,640 sqft",
+    price: 2450000,
+    currency: "AED",
+    handover: "Q3 2026",
+    accent: "#c9a66b",
+    plan: {
+      type: "posthandover",
+      booking: { percent: 10, label: "Booking / Reservation" },
+      duringConstruction: { percent: 40, label: "During construction, in stages" },
+      postHandover: { percent: 50, years: 3, label: "Post-handover, equal monthly installments" }
+    }
+  },
+  {
+    id: "p6",
+    name: "JVC Garden Residence",
+    developer: "Danube Properties",
+    location: "Jumeirah Village Circle",
+    bedrooms: "1 BR",
+    size: "710 sqft",
+    price: 780000,
+    currency: "AED",
+    handover: "Q4 2026",
+    accent: "#45a893",
+    plan: {
+      type: "monthly",
+      booking: { percent: 5, label: "Booking / Reservation" },
+      monthlyPercent: 1.5,
+      months: 32
+    }
+  },
+  {
+    id: "p7",
+    name: "Downtown Opera Suites",
+    developer: "Emaar Properties",
+    location: "Downtown Dubai",
+    bedrooms: "2 BR",
+    size: "1,320 sqft",
+    price: 3400000,
+    currency: "AED",
+    handover: "Ready",
+    accent: "#c9a66b",
+    plan: {
+      type: "milestone",
+      booking: { percent: 20, label: "Booking / Reservation" },
+      milestones: [
+        { percent: 30, label: "Within 30 days of booking" },
+        { percent: 50, label: "On handover" }
+      ]
+    }
+  }
+];
+
+/* =====================================================================
+   HELPERS
+   ===================================================================== */
+function fmt(n, currency){
+  return (currency||"AED") + " " + Math.round(n).toLocaleString("en-US");
+}
+function fmtPct(n){
+  return (Number.isInteger(n) ? n : n.toFixed(1)) + "%";
+}
+
+// Normalize any plan type into a flat list of stages:
+// [{ percent, label, isPostHandover, monthsSpan }]
+function getStages(property){
+  const p = property.plan;
+  const stages = [];
+  stages.push({ percent: p.booking.percent, label: p.booking.label });
+
+  if(p.type === "milestone"){
+    p.milestones.forEach(m => stages.push({ percent: m.percent, label: m.label }));
+  } else if(p.type === "monthly"){
+    const totalMonthly = p.monthlyPercent * p.months;
+    stages.push({
+      percent: Math.round(totalMonthly * 10) / 10,
+      label: p.monthlyPercent + "% per month × " + p.months + " months (until handover)",
+      isMonthlySummary: true,
+      monthlyPercent: p.monthlyPercent,
+      months: p.months
+    });
+  } else if(p.type === "posthandover"){
+    stages.push({ percent: p.duringConstruction.percent, label: p.duringConstruction.label });
+    stages.push({
+      percent: p.postHandover.percent,
+      label: p.postHandover.label + " (" + p.postHandover.years + " yrs)",
+      isPostHandover: true,
+      years: p.postHandover.years
+    });
+  }
+  return stages;
+}
+
+/* =====================================================================
+   BUILDING SILHOUETTE (placeholder visual, replace with real photos
+   by swapping renderVisual() to output an <img> tag instead)
+   ===================================================================== */
+function renderVisual(property, big){
+  const accent = property.accent || "#c9a66b";
+  const seed = property.id.charCodeAt(1) || 1;
+  const bars = [];
+  const n = 6;
+  for(let i=0;i<n;i++){
+    const h = 30 + ((seed * (i+3)) % 70);
+    bars.push(h);
+  }
+  const w = 400, h = 200, base = h - 20;
+  let rects = "";
+  const bw = w / n;
+  bars.forEach((bh, i) => {
+    const x = i * bw + 6;
+    const rh = (bh/100) * (base - 20);
+    rects += `<rect x="${x}" y="${base-rh}" width="${bw-12}" height="${rh}" fill="none" stroke="${accent}" stroke-opacity="0.55" stroke-width="1"/>`;
+    // window dots
+    const rows = Math.floor(rh/14);
+    for(let r=0;r<rows;r++){
+      rects += `<circle cx="${x+ (bw-12)/2}" cy="${base-rh+8+r*14}" r="1.2" fill="${accent}" fill-opacity="0.7"/>`;
+    }
+  });
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="${w}" height="${h}" fill="#141c25"/>
+    <line x1="0" y1="${base}" x2="${w}" y2="${base}" stroke="${accent}" stroke-opacity="0.3" stroke-width="1"/>
+    ${rects}
+  </svg>`;
+}
+
+/* =====================================================================
+   RENDER: CATALOG GRID
+   ===================================================================== */
+const grid = document.getElementById("grid");
+const propCount = document.getElementById("propCount");
+propCount.textContent = PROPERTIES.length + " option" + (PROPERTIES.length===1?"":"s");
+
+PROPERTIES.forEach(property => {
+  const card = document.createElement("button");
+  card.className = "card";
+  card.setAttribute("aria-label", "View payment plan for " + property.name);
+  card.innerHTML = `
+    <div class="card-visual">
+      ${renderVisual(property)}
+      <div class="card-corner"></div>
+    </div>
+    <div class="card-body">
+      <div class="card-developer">${property.developer}</div>
+      <h3 class="card-name">${property.name}</h3>
+      <div class="card-meta">
+        <span>${property.location}</span>
+        <span>${property.bedrooms}</span>
+        <span>${property.size}</span>
+      </div>
+      <div class="card-foot">
+        <div class="card-price">
+          <small>Price</small>
+          ${fmt(property.price, property.currency)}
+        </div>
+        <div class="card-arrow">View plan →</div>
+      </div>
+    </div>
+  `;
+  card.addEventListener("click", () => openDetail(property));
+  grid.appendChild(card);
+});
+
+/* =====================================================================
+   RENDER: DETAIL VIEW
+   ===================================================================== */
+const catalogEl = document.getElementById("catalog");
+const detailEl = document.getElementById("detail");
+let currentProperty = null;
+
+function openDetail(property){
+  currentProperty = property;
+  catalogEl.classList.add("hidden");
+  detailEl.classList.add("active");
+  window.scrollTo({top:0, behavior: "smooth"});
+
+  document.getElementById("detailVisual").innerHTML = renderVisual(property);
+  document.getElementById("detailDeveloper").textContent = property.developer;
+  document.getElementById("detailName").textContent = property.name;
+  document.getElementById("detailMeta").innerHTML =
+    `<span>${property.location}</span><span>${property.bedrooms}</span><span>${property.size}</span>`;
+  document.getElementById("detailPrice").textContent = fmt(property.price, property.currency);
+  document.getElementById("detailHandover").textContent = property.handover;
+  document.getElementById("currencyTag1").textContent = property.currency;
+  document.getElementById("currencyTag2").textContent = property.currency;
+
+  document.getElementById("downpaymentInput").value = "";
+  document.getElementById("monthlyInput").value = "";
+
+  renderLedger(property);
+  renderSchedule(property, 0);
+  renderResult(property, 0, 0);
+}
+
+document.getElementById("backBtn").addEventListener("click", () => {
+  detailEl.classList.remove("active");
+  catalogEl.classList.remove("hidden");
+  window.scrollTo({top:0, behavior:"smooth"});
+});
+
+function renderLedger(property){
+  const stages = getStages(property);
+  const rail = document.getElementById("ledgerRail");
+  const nodesEl = document.getElementById("ledgerNodes");
+  const tagsEl = document.getElementById("ledgerTags");
+  nodesEl.innerHTML = "";
+  tagsEl.innerHTML = "";
+
+  let cum = 0;
+  const positions = [];
+  stages.forEach(s => {
+    positions.push(cum);
+    cum += s.percent;
+  });
+  positions.push(cum); // final marker at 100%
+
+  positions.forEach((pos, i) => {
+    const node = document.createElement("div");
+    node.className = "ledger-node";
+    node.style.left = Math.min(pos, 100) + "%";
+    node.dataset.pos = pos;
+    nodesEl.appendChild(node);
+  });
+
+  stages.forEach((s, i) => {
+    const pos = positions[i];
+    const tag = document.createElement("div");
+    tag.className = "ledger-tag";
+    tag.style.left = Math.min(pos, 96) + "%";
+    const amt = property.price * s.percent / 100;
+    tag.innerHTML = `
+      <div class="pct">${fmtPct(s.percent)}</div>
+      <div class="amt">${fmt(amt, property.currency)}</div>
+      <div class="lbl">${s.label}</div>
+    `;
+    tagsEl.appendChild(tag);
+  });
+
+  document.getElementById("ledgerFill").style.width = "0%";
+}
+
+function renderSchedule(property, coveredCount){
+  const stages = getStages(property);
+  const body = document.getElementById("scheduleBody");
+  body.innerHTML = "";
+  stages.forEach((s, i) => {
+    const amt = property.price * s.percent / 100;
+    const tr = document.createElement("tr");
+    if(i < coveredCount) tr.classList.add("covered");
+    tr.innerHTML = `
+      <td class="stage">${s.label}</td>
+      <td class="num">${fmtPct(s.percent)}</td>
+      <td class="num">${fmt(amt, property.currency)}</td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
+/* =====================================================================
+   FIT CALCULATION
+   Given a downpayment + monthly budget, work out exactly what's
+   covered and what the resulting monthly / post-handover figure is.
+   ===================================================================== */
+function renderResult(property, downpayment, monthlyBudget){
+  const stages = getStages(property);
+  const price = property.price;
+  const box = document.getElementById("resultBox");
+
+  let remaining = downpayment;
+  let coveredCount = 0;
+  let coveredAmount = 0;
+
+  for(const s of stages){
+    if(s.isPostHandover) break; // downpayment doesn't apply to post-handover EMIs
+    const amt = price * s.percent / 100;
+    if(s.isMonthlySummary) break; // handled separately below
+    if(remaining >= amt){
+      remaining -= amt;
+      coveredAmount += amt;
+      coveredCount++;
+    } else {
+      break;
+    }
+  }
+
+  renderSchedule(property, coveredCount);
+
+  // ledger fill
+  const coveredPct = stages.slice(0, coveredCount).reduce((a,s)=>a+s.percent,0);
+  document.getElementById("ledgerFill").style.width = Math.min(coveredPct,100) + "%";
+  document.querySelectorAll(".ledger-node").forEach((node,i)=>{
+    const pos = parseFloat(node.dataset.pos);
+    node.classList.toggle("covered", pos <= coveredPct + 0.01);
+  });
+
+  const lines = [];
+  let statusText = "";
+  let statusWarn = false;
+
+  const nextStage = stages[coveredCount];
+
+  if(downpayment <= 0 && monthlyBudget <= 0){
+    statusText = "Enter your figures above to see what this plan means for you";
+    lines.push({k:"Total price", v: fmt(price, property.currency)});
+  } else {
+    lines.push({k:"Your downpayment covers", v: fmt(coveredAmount, property.currency) + " (" + fmtPct(coveredPct) + " of price)", hl:true});
+
+    if(coveredCount < stages.length){
+      if(nextStage.isMonthlySummary){
+        const need = price * nextStage.monthlyPercent / 100;
+        lines.push({k:"Next: monthly installments begin", v: fmt(need, property.currency) + " / month"});
+        if(monthlyBudget > 0){
+          if(monthlyBudget >= need){
+            statusText = "Your monthly budget comfortably covers this plan";
+          } else {
+            statusText = "Monthly budget is short by " + fmt(need - monthlyBudget, property.currency) + " / month";
+            statusWarn = true;
+          }
+        }
+      } else if(nextStage.isPostHandover){
+        const emiTotal = price * nextStage.percent / 100;
+        const months = nextStage.years * 12;
+        const emi = emiTotal / months;
+        lines.push({k:"Post-handover balance", v: fmt(emiTotal, property.currency)});
+        lines.push({k:"Required EMI over " + months + " months", v: fmt(emi, property.currency) + " / month", hl:true});
+        if(monthlyBudget > 0){
+          if(monthlyBudget >= emi){
+            const payoffMonths = Math.ceil(emiTotal / monthlyBudget);
+            statusText = "Your budget covers this — paid off in " + payoffMonths + " months (~" + (payoffMonths/12).toFixed(1) + " yrs)";
+          } else {
+            statusText = "Monthly budget is short by " + fmt(emi - monthlyBudget, property.currency) + " / month for the standard term";
+            statusWarn = true;
+          }
+        }
+      } else {
+        const shortfall = (price * nextStage.percent/100) - remaining;
+        lines.push({k:"Remaining for next stage: " + nextStage.label, v: fmt(shortfall, property.currency) + " short"});
+        statusText = "Downpayment doesn't fully cover the next milestone";
+        statusWarn = true;
+      }
+    } else {
+      statusText = "Your downpayment covers the full pre-handover schedule";
+    }
+
+    const totalRemaining = price - coveredAmount - (nextStage && nextStage.isPostHandover ? 0 : 0);
+  }
+
+  box.innerHTML = `
+    <div class="status"><span class="status-dot ${statusWarn?'warn':''}"></span>${statusText}</div>
+    <div class="result-lines">
+      ${lines.map(l => `<div class="result-line"><span class="k">${l.k}</span><span class="v ${l.hl?'hl':''}">${l.v}</span></div>`).join("")}
+    </div>
+  `;
+}
+
+document.getElementById("downpaymentInput").addEventListener("input", handleInputs);
+document.getElementById("monthlyInput").addEventListener("input", handleInputs);
+
+function handleInputs(){
+  if(!currentProperty) return;
+  const dp = parseFloat(document.getElementById("downpaymentInput").value) || 0;
+  const mb = parseFloat(document.getElementById("monthlyInput").value) || 0;
+  renderResult(currentProperty, dp, mb);
+}
+</script>
+</body>
+</html>

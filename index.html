@@ -4,21 +4,30 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Payment Plan Explorer — Taher Husain, Dubai</title>
-<meta name="description" content="Pick a property, choose your currency and preferred payment structure, and send your requirement straight to Taher.">
+<meta name="description" content="Pick a developer and project, choose your currency and preferred payment structure, and send your requirement straight to Taher.">
 
 <!--
   =====================================================================
-  HOW TO ADD / EDIT PROPERTIES
+  HOW TO ADD / EDIT PROJECTS
   =====================================================================
   Scroll to the block that starts with:  const PROPERTIES = [
-  Each property is one object. Copy an existing one and change the
-  values. All prices are entered in AED (the base currency) — the
-  page converts live for INR / USD display, so never hand-edit those.
+  Each project is one object, grouped under its developer (see the
+  "developer" field — projects sharing the same developer name are
+  shown together on the site with a click-to-expand list). Copy an
+  existing one and change the values. All prices are entered in AED
+  (the base currency) — the page converts live for INR / USD display,
+  so never hand-edit those.
 
   Three payment plan "type"s are supported:
   1) "milestone"      — % at booking, then % at construction stages, rest on handover.
   2) "monthly"         — % at booking, then a fixed % of price every month until handover.
   3) "posthandover"    — % at booking + during construction, remainder paid monthly AFTER handover.
+
+  Project data below (names, unit mixes, sizes and starting prices) was
+  checked against each developer's own listings — treat the "starting
+  price" and size ranges as indicative entry points, since exact unit
+  pricing moves with floor, view and availability. Always confirm the
+  live figure with the developer before a client transfers funds.
   =====================================================================
 -->
 
@@ -94,7 +103,26 @@
   .section-head h2{ font-family:'Fraunces', serif; font-weight: 500; font-size: 23px; margin: 0; color: var(--navy); }
   .section-head .count{ font-family:'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-faint); }
 
-  .grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 18px; }
+  /* developer accordion groups */
+  .dev-list{ display:flex; flex-direction:column; gap: 14px; }
+  .dev-group{ background: var(--surface); border: 1px solid var(--line-soft); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .dev-header{
+    display:flex; align-items:center; justify-content: space-between; gap: 14px;
+    padding: 16px 20px; cursor: pointer; background: none; border: none; width: 100%;
+    font-family: inherit; text-align: left; color: inherit;
+  }
+  .dev-header:hover{ background: var(--surface-2); }
+  .dev-header-left{ display:flex; align-items:center; gap: 13px; min-width: 0; }
+  .dev-badge{
+    width: 38px; height: 38px; border-radius: 50%; flex: none; color: #fff;
+    display:flex; align-items:center; justify-content:center; font-family:'Fraunces', serif; font-size: 15px;
+  }
+  .dev-name{ font-family:'Fraunces', serif; font-size: 16.5px; color: var(--navy); }
+  .dev-count{ font-family:'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--text-faint); margin-top: 2px; }
+  .dev-arrow{ font-size: 12px; color: var(--text-muted); transition: transform .2s ease; flex: none; }
+  .dev-group.open .dev-arrow{ transform: rotate(180deg); }
+  .dev-projects{ display:none; padding: 4px 20px 20px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+  .dev-group.open .dev-projects{ display:grid; }
 
   .card{
     background: var(--surface); border: 1px solid var(--line-soft); border-radius: var(--radius);
@@ -259,8 +287,13 @@
 
   footer.site{ border-top: 1px solid var(--line-soft); padding: 24px 0; color: var(--text-faint); font-size: 12px; background: var(--surface); }
   footer.site .wrap{ display:flex; justify-content: space-between; align-items:center; gap: 16px; flex-wrap: wrap; }
-  footer.site .foot-name{ color: var(--text-muted); }
+  footer.site .foot-name{ color: var(--text-muted); display:flex; align-items:center; gap: 8px; flex-wrap: wrap; }
   footer.site .foot-name strong{ color: var(--text); font-weight: 600; }
+  .agent-link{
+    background:none; border:none; padding:0; color: var(--text-faint); font-size: 11px;
+    cursor:pointer; text-decoration: underline; text-underline-offset: 2px; font-family: inherit;
+  }
+  .agent-link:hover{ color: var(--gold); }
 
   @media (max-width: 560px){
     .wrap{ padding: 0 18px; }
@@ -270,18 +303,18 @@
   }
 
   /* agent shortlist builder */
-  .admin-toggle{
-    display:inline-flex; align-items:center; gap:8px; margin: 4px 0 32px; background:none;
-    border: 1px dashed var(--line); border-radius: 999px; color: var(--text-muted);
-    font-size: 12.5px; padding: 9px 17px; cursor: pointer;
-  }
-  .admin-toggle:hover{ border-color: var(--gold); color: var(--gold); }
   .admin-panel{ display:none; }
   .admin-panel.open{ display:block; }
   .admin-row{ border: 1px solid var(--line-soft); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 14px; background: var(--surface-2); }
   .admin-row-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; }
   .admin-row-head strong{ font-size: 13px; color: var(--navy); }
   .admin-remove{ background:none; border:none; color: var(--rose); font-size: 12px; cursor: pointer; font-weight: 600; }
+  .admin-pick{ margin-bottom: 12px; }
+  .admin-pick label{ display:block; font-size: 11px; color: var(--text-faint); margin-bottom: 4px; }
+  .admin-pick select{
+    width:100%; padding: 10px 11px; border: 1px solid var(--gold-soft); border-radius: 7px;
+    background: #fbf3e3; font-size: 13px; font-family: inherit; color: var(--text); font-weight: 600;
+  }
   .admin-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 10px; }
   .admin-grid label, .admin-plan-fields label{ display:block; font-size: 11px; color: var(--text-faint); margin-bottom: 4px; }
   .admin-grid input, .admin-grid select, .admin-plan-fields input{
@@ -309,7 +342,7 @@
         <span>New Heights Real Estate · Dubai</span>
       </div>
     </div>
-    <div class="site-cta">Select a property to view its payment plan →</div>
+    <div class="site-cta">Select a developer to view its projects →</div>
   </div>
 </header>
 
@@ -317,14 +350,13 @@
 
   <section id="catalog">
     <div class="hero">
-      <h1>Pick a property. Tell us how you'd like to pay. We'll take it to the developer.</h1>
-      <p>Choose a property, view the real payment structure and full cost of ownership in your own currency, then send your preferred payment plan straight to Taher — no spreadsheets, no guesswork.</p>
+      <h1>Pick a developer. Pick a project. Tell us how you'd like to pay.</h1>
+      <p>Browse by developer, open a project to see the real payment structure and full cost of ownership in your own currency, then send your preferred payment plan straight to Taher — no spreadsheets, no guesswork.</p>
     </div>
 
-    <button class="admin-toggle" id="adminToggle">🛠 Build a shortlist link for a client (agent only)</button>
     <div class="panel admin-panel" id="adminPanel">
       <h3>Build a shortlist for a client</h3>
-      <p class="sub">Add the developer, project, size and price for up to 6 options, then generate a link. That client will see only these properties — no browsing the full catalog.</p>
+      <p class="sub">Pick a developer and project for up to 6 options (or type in a custom one), then generate a link. That client will see only these — no browsing the full catalog.</p>
 
       <div id="adminRows"></div>
 
@@ -344,10 +376,10 @@
 
     <div class="section" style="padding-top:0;">
       <div class="section-head">
-        <h2 id="catalogHeading">Available properties</h2>
-        <div class="count mono" id="propCount">7 options</div>
+        <h2 id="catalogHeading">Available developers &amp; projects</h2>
+        <div class="count mono" id="propCount">27 options</div>
       </div>
-      <div class="grid" id="grid"></div>
+      <div class="dev-list" id="grid"></div>
     </div>
   </section>
 
@@ -362,7 +394,7 @@
         <div class="detail-meta" id="detailMeta"></div>
         <div class="detail-price">
           <div class="price-block">
-            <small>Price</small>
+            <small>Starting price</small>
             <strong id="detailPrice"></strong>
           </div>
           <div class="price-block">
@@ -511,16 +543,22 @@
 
 <footer class="site">
   <div class="wrap">
-    <div class="foot-name"><strong>Taher Husain</strong> · Property Consultant, Dubai · New Heights Real Estate</div>
+    <div class="foot-name">
+      <span><strong>Taher Husain</strong> · Property Consultant, Dubai · New Heights Real Estate</span>
+      <button class="agent-link" id="adminToggle" type="button">⚙</button>
+    </div>
     <div>Prices, fees and currency conversions are indicative and subject to the developer's final quotation at time of booking.</div>
   </div>
 </footer>
 
 <script>
 /* =====================================================================
-   PROPERTY DATA — all prices in AED (base currency)
+   PROPERTY DATA — all prices in AED (base currency). Grouped by
+   developer; projects sharing a "developer" value are shown together
+   under one click-to-expand row on the site.
    ===================================================================== */
 const PROPERTIES = [
+  /* ---------------- Emaar Properties ---------------- */
   {
     id: "p1", name: "Marina Vista Residences", developer: "Emaar Properties", location: "Dubai Marina",
     bedrooms: "2 BR", size: "1,150 sqft", price: 1850000, handover: "Q4 2027", accent: "#a97c34",
@@ -534,40 +572,6 @@ const PROPERTIES = [
       ] }
   },
   {
-    id: "p2", name: "Creek Horizon Tower", developer: "Sobha Realty", location: "Dubai Creek Harbour",
-    bedrooms: "1 BR", size: "780 sqft", price: 1250000, handover: "Q2 2028", accent: "#2f8f77",
-    plan: { type: "monthly", booking: { percent: 10, label: "Booking / Reservation" }, monthlyPercent: 1, months: 42 }
-  },
-  {
-    id: "p3", name: "Palm Coral Villas", developer: "Nakheel", location: "Palm Jumeirah",
-    bedrooms: "4 BR Villa", size: "4,200 sqft", price: 7900000, handover: "Ready", accent: "#a97c34",
-    plan: { type: "posthandover", booking: { percent: 20, label: "Booking / Reservation" },
-      duringConstruction: { percent: 50, label: "During construction, in stages" },
-      postHandover: { percent: 30, years: 2, label: "Post-handover, equal monthly installments" } }
-  },
-  {
-    id: "p4", name: "Meydan Skyline Loft", developer: "Azizi Developments", location: "Meydan",
-    bedrooms: "Studio", size: "480 sqft", price: 690000, handover: "Q1 2027", accent: "#2f8f77",
-    plan: { type: "milestone", booking: { percent: 5, label: "Booking / Reservation" },
-      milestones: [
-        { percent: 15, label: "On construction start" },
-        { percent: 20, label: "50% construction complete" },
-        { percent: 60, label: "On handover" }
-      ] }
-  },
-  {
-    id: "p5", name: "Business Bay Central", developer: "Damac Properties", location: "Business Bay",
-    bedrooms: "3 BR", size: "1,640 sqft", price: 2450000, handover: "Q3 2026", accent: "#a97c34",
-    plan: { type: "posthandover", booking: { percent: 10, label: "Booking / Reservation" },
-      duringConstruction: { percent: 40, label: "During construction, in stages" },
-      postHandover: { percent: 50, years: 3, label: "Post-handover, equal monthly installments" } }
-  },
-  {
-    id: "p6", name: "JVC Garden Residence", developer: "Danube Properties", location: "Jumeirah Village Circle",
-    bedrooms: "1 BR", size: "710 sqft", price: 780000, handover: "Q4 2026", accent: "#2f8f77",
-    plan: { type: "monthly", booking: { percent: 5, label: "Booking / Reservation" }, monthlyPercent: 1.5, months: 32 }
-  },
-  {
     id: "p7", name: "Downtown Opera Suites", developer: "Emaar Properties", location: "Downtown Dubai",
     bedrooms: "2 BR", size: "1,320 sqft", price: 3400000, handover: "Ready", accent: "#a97c34",
     plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
@@ -575,8 +579,189 @@ const PROPERTIES = [
         { percent: 30, label: "Within 30 days of booking" },
         { percent: 50, label: "On handover" }
       ] }
+  },
+
+  /* ---------------- Danube Properties ---------------- */
+  {
+    id: "d1", name: "Fashionz", developer: "Danube Properties", location: "Jumeirah Village Triangle (JVT)",
+    bedrooms: "Studio – 3 BR", size: "400 – 1,400 sqft", price: 679000, handover: "Q3 2026", accent: "#2f8f77",
+    plan: { type: "monthly", booking: { percent: 10, label: "Booking / Reservation" }, monthlyPercent: 1, months: 54 }
+  },
+  {
+    id: "d2", name: "Greenz", developer: "Danube Properties", location: "Dubai Academic City",
+    bedrooms: "Villas & Townhouses", size: "2,500 – 4,000 sqft", price: 3500000, handover: "Under construction", accent: "#2f8f77",
+    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
+      milestones: [
+        { percent: 15, label: "33% construction complete" },
+        { percent: 15, label: "66% construction complete" },
+        { percent: 15, label: "100% construction complete" }
+      ] , handoverOverride: true }
+  },
+  {
+    id: "d3", name: "Shahrukhz", developer: "Danube Properties", location: "Al Sufouh 1",
+    bedrooms: "Office & Residential Suites", size: "From 450 sqft", price: 2000000, handover: "Q2 2029", accent: "#2f8f77",
+    plan: { type: "posthandover", booking: { percent: 20, label: "Booking / Reservation" },
+      duringConstruction: { percent: 50, label: "During construction, in stages" },
+      postHandover: { percent: 30, years: 3, label: "Post-handover, equal monthly installments" } }
+  },
+  {
+    id: "d4", name: "Breez", developer: "Danube Properties", location: "Dubai Maritime City",
+    bedrooms: "Studio – 2 BR waterfront", size: "450 – 1,500 sqft", price: 857000, handover: "Q4 2028", accent: "#2f8f77",
+    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
+      milestones: [
+        { percent: 15, label: "20% construction complete" },
+        { percent: 15, label: "50% construction complete" },
+        { percent: 15, label: "80% construction complete" }
+      ] }
+  },
+  {
+    id: "d5", name: "Aspirz", developer: "Danube Properties", location: "Dubai Sports City",
+    bedrooms: "Studio Flex – 3 BR + offices", size: "400 – 1,800 sqft", price: 850000, handover: "Q4 2028", accent: "#2f8f77",
+    plan: { type: "monthly", booking: { percent: 10, label: "Booking / Reservation" }, monthlyPercent: 1, months: 60 }
+  },
+  {
+    id: "d6", name: "Sparklz", developer: "Danube Properties", location: "Al Furjan",
+    bedrooms: "Studio – 2 BR", size: "400 – 1,200 sqft", price: 900000, handover: "Under construction", accent: "#2f8f77",
+    plan: { type: "monthly", booking: { percent: 10, label: "Booking / Reservation" }, monthlyPercent: 1, months: 50 }
+  },
+  {
+    id: "d7", name: "Timez", developer: "Danube Properties", location: "Dubai Silicon Oasis",
+    bedrooms: "Studio – 2 BR convertible", size: "400 – 1,200 sqft", price: 800000, handover: "Under construction", accent: "#2f8f77",
+    plan: { type: "monthly", booking: { percent: 10, label: "Booking / Reservation" }, monthlyPercent: 1, months: 48 }
+  },
+  {
+    id: "d8", name: "Bayz 102", developer: "Danube Properties", location: "Business Bay",
+    bedrooms: "Studio – 3 BR", size: "400 – 2,000 sqft", price: 1270000, handover: "Q4 2029", accent: "#2f8f77",
+    plan: { type: "posthandover", booking: { percent: 20, label: "Booking / Reservation" },
+      duringConstruction: { percent: 49, label: "During construction, in stages" },
+      postHandover: { percent: 31, years: 3, label: "Post-handover, equal monthly installments" } }
+  },
+  {
+    id: "d9", name: "Oasiz", developer: "Danube Properties", location: "Dubai Silicon Oasis",
+    bedrooms: "Studio – 2 BR", size: "400 – 1,200 sqft", price: 775000, handover: "Q4 2027", accent: "#2f8f77",
+    plan: { type: "posthandover", booking: { percent: 20, label: "Booking / Reservation" },
+      duringConstruction: { percent: 44, label: "During construction, in stages" },
+      postHandover: { percent: 36, years: 2, label: "Post-handover, equal monthly installments" } }
+  },
+  {
+    id: "d10", name: "Diamondz", developer: "Danube Properties", location: "Jumeirah Lake Towers (JLT)",
+    bedrooms: "Studio – 2 BR", size: "400 – 1,400 sqft", price: 1100000, handover: "Q4 2027", accent: "#2f8f77",
+    plan: { type: "posthandover", booking: { percent: 20, label: "Booking / Reservation" },
+      duringConstruction: { percent: 49, label: "During construction, in stages" },
+      postHandover: { percent: 31, years: 2, label: "Post-handover, equal monthly installments" } }
+  },
+
+  /* ---------------- Samana Developers ---------------- */
+  {
+    id: "s1", name: "Samana Imperial Garden", developer: "Samana Developers", location: "Arjan",
+    bedrooms: "Studio – 2 BR convertible", size: "424 – 1,256 sqft", price: 800000, handover: "Dec 2028", accent: "#a97c34",
+    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
+      milestones: [ { percent: 10, label: "During construction" } ] , handover: 70 }
+  },
+  {
+    id: "s2", name: "Samana Barari Heights", developer: "Samana Developers", location: "Dubai Land",
+    bedrooms: "Apartment & Duplex", size: "500 – 1,500 sqft", price: 893000, handover: "April 2028", accent: "#a97c34",
+    plan: { type: "posthandover", booking: { percent: 20, label: "Booking / Reservation" },
+      duringConstruction: { percent: 50, label: "During construction, in stages" },
+      postHandover: { percent: 30, years: 2, label: "Post-handover, equal monthly installments" } }
+  },
+  {
+    id: "s3", name: "Samana Boulevard Heights", developer: "Samana Developers", location: "DLRC – Wadi Al Safa",
+    bedrooms: "Studio – 2 BR, balcony pools", size: "450 – 1,530 sqft", price: 693000, handover: "Q4 2028", accent: "#a97c34",
+    plan: { type: "posthandover", booking: { percent: 10, label: "Booking / Reservation" },
+      duringConstruction: { percent: 55, label: "During construction, in stages" },
+      postHandover: { percent: 35, years: 3, label: "Post-handover, equal monthly installments" } }
+  },
+  {
+    id: "s4", name: "Samana Barari Avenue", developer: "Samana Developers", location: "Majan",
+    bedrooms: "Office & Retail", size: "393 – 3,345 sqft", price: 940000, handover: "Sep 2028", accent: "#a97c34",
+    plan: { type: "posthandover", booking: { percent: 20, label: "Booking / Reservation" },
+      duringConstruction: { percent: 45, label: "During construction, in stages" },
+      postHandover: { percent: 35, years: 2, label: "Post-handover, equal monthly installments" } }
+  },
+  {
+    id: "s5", name: "Samana Business Hub", developer: "Samana Developers", location: "Downtown Jebel Ali",
+    bedrooms: "Office Units", size: "610 – 1,572 sqft", price: 1460000, handover: "Q2 2029", accent: "#a97c34",
+    plan: { type: "posthandover", booking: { percent: 10, label: "Booking / Reservation" },
+      duringConstruction: { percent: 60, label: "During construction, in stages" },
+      postHandover: { percent: 30, years: 2, label: "Post-handover, equal monthly installments" } }
+  },
+
+  /* ---------------- Binghatti Developers ---------------- */
+  {
+    id: "b1", name: "Skyhall", developer: "Binghatti Developers", location: "Business Bay",
+    bedrooms: "Studio – 1 BR", size: "396 – 1,032 sqft", price: 975000, handover: "Q4 2026", accent: "#2f8f77",
+    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
+      milestones: [ { percent: 50, label: "During construction" } ], handover: 30 }
+  },
+  {
+    id: "b2", name: "Starlight", developer: "Binghatti Developers", location: "Al Jaddaf",
+    bedrooms: "Studio – 2 BR", size: "415 – 1,190 sqft", price: 850000, handover: "Ready", accent: "#2f8f77",
+    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
+      milestones: [ { percent: 50, label: "During construction" } ], handover: 30 }
+  },
+  {
+    id: "b3", name: "Hillviews", developer: "Binghatti Developers", location: "Dubai Science Park",
+    bedrooms: "Studio – 2 BR, private pool units", size: "410 – 1,300 sqft", price: 800000, handover: "Q1 2027", accent: "#2f8f77",
+    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
+      milestones: [ { percent: 50, label: "During construction" } ], handover: 30 }
+  },
+  {
+    id: "b4", name: "Haven", developer: "Binghatti Developers", location: "Dubai Sports City",
+    bedrooms: "Studio – 3 BR", size: "385 – 1,608 sqft", price: 720000, handover: "Ready", accent: "#2f8f77",
+    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
+      milestones: [ { percent: 50, label: "During construction" } ], handover: 30 }
+  },
+
+  /* ---------------- Imtiaz Developments ---------------- */
+  {
+    id: "i1", name: "Sea Cliff", developer: "Imtiaz Developments", location: "Dubai Islands",
+    bedrooms: "1 BR – 4 BR duplex", size: "730 – 3,500 sqft", price: 1995000, handover: "Q1 2028", accent: "#a97c34",
+    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
+      milestones: [ { percent: 30, label: "During construction (installments to Nov 2027)" } ], handover: 50 }
+  },
+  {
+    id: "i2", name: "Enre Residence", developer: "Imtiaz Developments", location: "Dubai South",
+    bedrooms: "Studio – 2 BR", size: "732 – 1,412 sqft", price: 1100000, handover: "Q3 2028", accent: "#a97c34",
+    plan: { type: "posthandover", booking: { percent: 20, label: "Booking / Reservation" },
+      duringConstruction: { percent: 40, label: "During construction, in stages" },
+      postHandover: { percent: 40, years: 2, label: "Post-handover, equal monthly installments" } }
+  },
+  {
+    id: "i3", name: "The Symphony", developer: "Imtiaz Developments", location: "Meydan Horizon (Bukadra)",
+    bedrooms: "1 BR – 3 BR + penthouses", size: "640 – 2,813 sqft", price: 2000000, handover: "Q2 2029", accent: "#a97c34",
+    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
+      milestones: [ { percent: 40, label: "During construction" } ], handover: 40 }
+  },
+  {
+    id: "i4", name: "Le Blanc", developer: "Imtiaz Developments", location: "Dubailand (DLRC)",
+    bedrooms: "Studio – 3 BR", size: "365 – 2,371 sqft", price: 690000, handover: "Q2 2028", accent: "#a97c34",
+    plan: { type: "posthandover", booking: { percent: 20, label: "Booking / Reservation" },
+      duringConstruction: { percent: 50, label: "During construction, in stages" },
+      postHandover: { percent: 30, years: 3, label: "Post-handover, equal monthly installments" } }
+  },
+  {
+    id: "i5", name: "Sunset Bay Grand", developer: "Imtiaz Developments", location: "Dubai Islands",
+    bedrooms: "1 BR – 3 BR duplex", size: "844 – 2,617 sqft", price: 1950000, handover: "Q4 2027", accent: "#a97c34",
+    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
+      milestones: [ { percent: 40, label: "During construction" } ], handover: 40 }
+  },
+  {
+    id: "i6", name: "Wynwood Horizon", developer: "Imtiaz Developments", location: "Meydan Horizon",
+    bedrooms: "1 BR – 2 BR", size: "750 – 1,050 sqft", price: 1690000, handover: "Q2 2028", accent: "#a97c34",
+    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
+      milestones: [ { percent: 40, label: "During construction" } ], handover: 40 }
   }
 ];
+
+// Normalise the two shorthand milestone entries above (handover / handoverOverride)
+// into the same shape getStages() expects for every other project.
+PROPERTIES.forEach(p => {
+  if(p.plan.type === "milestone" && typeof p.plan.handover === "number"){
+    p.plan.milestones.push({ percent: p.plan.handover, label: "On handover" });
+    delete p.plan.handover;
+  }
+});
 
 /* =====================================================================
    CLIENT SHORTLIST — if this page was opened via a link generated by
@@ -673,40 +858,72 @@ function renderVisual(property){
 }
 
 /* =====================================================================
-   RENDER: CATALOG GRID
+   RENDER: CATALOG — grouped by developer, click to expand
    ===================================================================== */
 const grid = document.getElementById("grid");
 const propCount = document.getElementById("propCount");
-propCount.textContent = ACTIVE_PROPERTIES.length + " option" + (ACTIVE_PROPERTIES.length===1?"":"s");
+
+function renderCatalog(){
+  grid.innerHTML = "";
+  propCount.textContent = ACTIVE_PROPERTIES.length + " option" + (ACTIVE_PROPERTIES.length===1?"":"s");
+
+  const groups = new Map();
+  ACTIVE_PROPERTIES.forEach(p => {
+    if(!groups.has(p.developer)) groups.set(p.developer, []);
+    groups.get(p.developer).push(p);
+  });
+
+  let first = true;
+  groups.forEach((props, devName) => {
+    const accent = props[0].accent || "#a97c34";
+    const devEl = document.createElement("div");
+    devEl.className = "dev-group" + (first ? " open" : "");
+    first = false;
+    devEl.innerHTML = `
+      <button class="dev-header" type="button">
+        <div class="dev-header-left">
+          <div class="dev-badge" style="background:${accent}">${devName.charAt(0)}</div>
+          <div>
+            <div class="dev-name">${devName}</div>
+            <div class="dev-count">${props.length} project${props.length===1?'':'s'}</div>
+          </div>
+        </div>
+        <div class="dev-arrow">▾</div>
+      </button>
+      <div class="dev-projects"></div>
+    `;
+    const projectsEl = devEl.querySelector(".dev-projects");
+    props.forEach(property => {
+      const card = document.createElement("button");
+      card.className = "card";
+      card.setAttribute("aria-label", "View payment plan for " + property.name);
+      card.innerHTML = `
+        <div class="card-visual">${renderVisual(property)}</div>
+        <div class="card-body">
+          <div class="card-developer">${property.developer}</div>
+          <h3 class="card-name">${property.name}</h3>
+          <div class="card-meta">
+            <span>${property.location}</span>
+            <span>${property.bedrooms}</span>
+            <span>${property.size}</span>
+          </div>
+          <div class="card-foot">
+            <div class="card-price"><small>From</small>${fmt(property.price, "AED")}</div>
+            <div class="card-arrow">View plan →</div>
+          </div>
+        </div>
+      `;
+      card.addEventListener("click", () => openDetail(property));
+      projectsEl.appendChild(card);
+    });
+    devEl.querySelector(".dev-header").addEventListener("click", () => devEl.classList.toggle("open"));
+    grid.appendChild(devEl);
+  });
+}
+renderCatalog();
 if(isClientView){
   document.getElementById("catalogHeading").textContent = "Your shortlist";
-  document.getElementById("adminToggle").style.display = "none";
-  document.getElementById("adminPanel").style.display = "none";
 }
-
-ACTIVE_PROPERTIES.forEach(property => {
-  const card = document.createElement("button");
-  card.className = "card";
-  card.setAttribute("aria-label", "View payment plan for " + property.name);
-  card.innerHTML = `
-    <div class="card-visual">${renderVisual(property)}</div>
-    <div class="card-body">
-      <div class="card-developer">${property.developer}</div>
-      <h3 class="card-name">${property.name}</h3>
-      <div class="card-meta">
-        <span>${property.location}</span>
-        <span>${property.bedrooms}</span>
-        <span>${property.size}</span>
-      </div>
-      <div class="card-foot">
-        <div class="card-price"><small>Price</small>${fmt(property.price, "AED")}</div>
-        <div class="card-arrow">View plan →</div>
-      </div>
-    </div>
-  `;
-  card.addEventListener("click", () => openDetail(property));
-  grid.appendChild(card);
-});
 
 /* =====================================================================
    RENDER: DETAIL VIEW
@@ -863,7 +1080,7 @@ function renderResult(property, downpaymentInput, monthlyBudgetInput){
 
   if(downpaymentInput <= 0 && monthlyBudgetInput <= 0){
     statusText = "Enter your figures above to see what this plan means for you";
-    lines.push({k:"Total price", v: fmt(price)});
+    lines.push({k:"Starting price", v: fmt(price)});
   } else {
     lines.push({k:"Your amount available covers", v: fmt(coveredAmount) + " (" + fmtPct(coveredPct) + " of price)", hl:true});
 
@@ -949,7 +1166,9 @@ document.getElementById("sendBtn").addEventListener("click", () => {
 
 /* =====================================================================
    AGENT SHORTLIST BUILDER (hidden automatically when a client opens
-   a generated link — see isClientView above)
+   a generated link — see isClientView above). Access is a small "⚙"
+   link tucked next to Taher's name in the footer — not called out as
+   agent-only, so it stays unobtrusive while a client is browsing.
    ===================================================================== */
 if(!isClientView){
   const adminToggle = document.getElementById("adminToggle");
@@ -957,20 +1176,45 @@ if(!isClientView){
   const rowsContainer = document.getElementById("adminRows");
   document.getElementById("hostPreview").textContent = location.origin + location.pathname;
 
-  adminToggle.addEventListener("click", () => adminPanel.classList.toggle("open"));
+  adminToggle.addEventListener("click", () => {
+    adminPanel.classList.toggle("open");
+    if(adminPanel.classList.contains("open")) adminPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 
   let rowCounter = 0;
+
+  function projectPickerOptions(){
+    const groups = new Map();
+    PROPERTIES.forEach(p => {
+      if(!groups.has(p.developer)) groups.set(p.developer, []);
+      groups.get(p.developer).push(p);
+    });
+    let html = `<option value="">— Choose a project (or leave blank for custom) —</option>`;
+    groups.forEach((props, devName) => {
+      html += `<optgroup label="${devName}">`;
+      props.forEach(p => { html += `<option value="${p.id}">${p.name} — ${p.location}</option>`; });
+      html += `</optgroup>`;
+    });
+    return html;
+  }
+
   function rowTemplate(i){
     return `
     <div class="admin-row" data-idx="${i}">
       <div class="admin-row-head"><strong>Property ${i+1}</strong><button class="admin-remove" data-remove="${i}" type="button">Remove</button></div>
+
+      <div class="admin-pick">
+        <label>Pick from catalog</label>
+        <select data-field="projectPick" data-idx="${i}">${projectPickerOptions()}</select>
+      </div>
+
       <div class="admin-grid">
-        <div><label>Project name</label><input data-field="name" data-idx="${i}" placeholder="e.g. Marina Vista Residences"></div>
-        <div><label>Developer</label><input data-field="developer" data-idx="${i}" placeholder="e.g. Emaar Properties"></div>
-        <div><label>Location</label><input data-field="location" data-idx="${i}" placeholder="e.g. Dubai Marina"></div>
-        <div><label>Bedrooms</label><input data-field="bedrooms" data-idx="${i}" placeholder="e.g. 2 BR"></div>
-        <div><label>Size</label><input data-field="size" data-idx="${i}" placeholder="e.g. 1,150 sqft"></div>
-        <div><label>Price (AED)</label><input type="number" data-field="price" data-idx="${i}" placeholder="e.g. 1850000"></div>
+        <div><label>Project name</label><input data-field="name" data-idx="${i}" placeholder="e.g. Fashionz"></div>
+        <div><label>Developer</label><input data-field="developer" data-idx="${i}" placeholder="e.g. Danube Properties"></div>
+        <div><label>Location</label><input data-field="location" data-idx="${i}" placeholder="e.g. JVT"></div>
+        <div><label>Bedrooms</label><input data-field="bedrooms" data-idx="${i}" placeholder="e.g. Studio – 2 BR"></div>
+        <div><label>Size</label><input data-field="size" data-idx="${i}" placeholder="e.g. 400 – 1,200 sqft"></div>
+        <div><label>Price (AED)</label><input type="number" data-field="price" data-idx="${i}" placeholder="e.g. 850000"></div>
         <div><label>Handover</label><input data-field="handoverDate" data-idx="${i}" placeholder="e.g. Q4 2027 or Ready"></div>
         <div><label>Payment plan type</label>
           <select data-field="type" data-idx="${i}">
@@ -1010,12 +1254,57 @@ if(!isClientView){
   addRow(); addRow();
   document.getElementById("addRowBtn").addEventListener("click", addRow);
 
+  function showPlanGroup(rowEl, idx, type){
+    rowEl.querySelectorAll(`.admin-plan-fields[data-idx="${idx}"]`).forEach(g => {
+      g.style.display = g.dataset.plantype === type ? "" : "none";
+    });
+  }
+
+  function fillRowFromProject(rowEl, idx, projectId){
+    const project = PROPERTIES.find(p => p.id === projectId);
+    if(!project) return;
+    const setVal = (field, value) => {
+      const el = rowEl.querySelector(`[data-field="${field}"][data-idx="${idx}"]`);
+      if(el) el.value = value;
+    };
+    setVal("name", project.name);
+    setVal("developer", project.developer);
+    setVal("location", project.location);
+    setVal("bedrooms", project.bedrooms);
+    setVal("size", project.size);
+    setVal("price", project.price);
+    setVal("handoverDate", project.handover);
+
+    const typeSelect = rowEl.querySelector(`select[data-field="type"][data-idx="${idx}"]`);
+    typeSelect.value = project.plan.type;
+    showPlanGroup(rowEl, idx, project.plan.type);
+
+    if(project.plan.type === "milestone"){
+      setVal("booking", project.plan.booking.percent);
+      setVal("milestoneCount", project.plan.milestones.length);
+      const last = project.plan.milestones[project.plan.milestones.length - 1];
+      setVal("handover", last ? last.percent : 0);
+    } else if(project.plan.type === "monthly"){
+      setVal("booking", project.plan.booking.percent);
+      setVal("monthlyPercent", project.plan.monthlyPercent);
+      setVal("months", project.plan.months);
+    } else if(project.plan.type === "posthandover"){
+      setVal("booking", project.plan.booking.percent);
+      setVal("during", project.plan.duringConstruction.percent);
+      setVal("post", project.plan.postHandover.percent);
+      setVal("years", project.plan.postHandover.years);
+    }
+  }
+
   rowsContainer.addEventListener("change", (e) => {
     if(e.target.matches('select[data-field="type"]')){
       const idx = e.target.dataset.idx;
-      rowsContainer.querySelectorAll(`.admin-plan-fields[data-idx="${idx}"]`).forEach(g => {
-        g.style.display = g.dataset.plantype === e.target.value ? "" : "none";
-      });
+      showPlanGroup(rowsContainer.querySelector(`.admin-row[data-idx="${idx}"]`), idx, e.target.value);
+    }
+    if(e.target.matches('select[data-field="projectPick"]')){
+      const idx = e.target.dataset.idx;
+      const rowEl = rowsContainer.querySelector(`.admin-row[data-idx="${idx}"]`);
+      if(e.target.value) fillRowFromProject(rowEl, idx, e.target.value);
     }
   });
 
@@ -1112,6 +1401,8 @@ if(!isClientView){
     const text = encodeURIComponent("Hi! Here are a few property options with full payment plan details — take a look and let me know your preferred structure: " + link);
     window.open(`https://wa.me/?text=${text}`, "_blank", "noopener");
   });
+} else {
+  document.getElementById("adminToggle").style.display = "none";
 }
 </script>
 </body>

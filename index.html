@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Investment &amp; ROI Explorer — Taher Husain, Dubai</title>
-<meta name="description" content="Enter a budget, see which Dubai projects fit it, and compare estimated value at handover, rental income and ROI side by side." />
+<meta name="description" content="Enter an amount, see which Dubai projects fit it, and compare estimated value at handover, rental income and ROI side by side." />
 <style>
   :root{
     --paper:#F7F4EC;
@@ -26,6 +26,8 @@
   body[data-dev="danube"]{ --accent:#1F5FA8; --accent-soft:#E6EEF7; }
   body[data-dev="imtiaz"]{ --accent:#7C1F2B; --accent-soft:#F6E9EA; }
   body[data-dev="iman"]{ --accent:#9C7A2E; --accent-soft:#F5EFDF; }
+  body[data-dev="binghatti"]{ --accent:#3A2E22; --accent-soft:#ECE7DE; }
+  body[data-dev="samana"]{ --accent:#1F6F5C; --accent-soft:#E5F1EE; }
 
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -50,10 +52,10 @@
     border-bottom:1px solid var(--line);
     background:var(--white);
   }
-  .top-strip{height:5px;background:linear-gradient(90deg,#1F5FA8 0 33%,#7C1F2B 33% 66%,#9C7A2E 66% 100%);}
+  .top-strip{height:5px;background:linear-gradient(90deg,#1F5FA8 0 20%,#7C1F2B 20% 40%,#9C7A2E 40% 60%,#3A2E22 60% 80%,#1F6F5C 80% 100%);}
   .site-bar{
     display:flex;align-items:center;justify-content:space-between;
-    padding:16px 0;
+    padding:16px 0;flex-wrap:wrap;gap:12px;
   }
   .brand{display:flex;align-items:center;gap:12px;}
   .brand-mark{
@@ -64,11 +66,23 @@
   }
   .brand-text .name{font-size:15px;font-weight:600;color:var(--navy);}
   .brand-text .role{font-size:12px;color:var(--ink-soft);}
+  .site-bar-right{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
   .site-bar nav a{
-    font-size:13px;color:var(--ink-soft);text-decoration:none;margin-left:22px;
+    font-size:13px;color:var(--ink-soft);text-decoration:none;
     border-bottom:1px solid transparent;padding-bottom:2px;
   }
   .site-bar nav a:hover{border-color:var(--gold);color:var(--gold);}
+
+  /* ---------- language switcher ---------- */
+  .lang-switch{
+    display:flex;border:1px solid var(--line);border-radius:20px;overflow:hidden;background:var(--paper);
+  }
+  .lang-switch button{
+    padding:7px 14px;border:none;background:transparent;font-size:12.5px;color:var(--ink-soft);
+    cursor:pointer;font-family:'Inter',sans-serif;border-right:1px solid var(--line);white-space:nowrap;
+  }
+  .lang-switch button:last-child{border-right:none;}
+  .lang-switch button.active{background:var(--navy);color:var(--white);}
 
   /* ---------- hero ---------- */
   .hero{padding:46px 0 30px;}
@@ -76,7 +90,7 @@
   .hero h1{font-size:38px;line-height:1.14;margin:0 0 14px;max-width:660px;}
   .hero p.lead{font-size:16px;color:var(--ink-soft);max-width:580px;margin:0 0 28px;}
 
-  /* ---------- budget panel ---------- */
+  /* ---------- amount panel ---------- */
   .mode-toggle{display:flex;gap:0;margin-bottom:16px;border:1px solid var(--line);border-radius:20px;width:fit-content;overflow:hidden;background:var(--white);}
   .mode-toggle button{
     padding:9px 18px;border:none;background:transparent;font-size:13px;color:var(--ink-soft);
@@ -225,7 +239,7 @@
   footer.site{padding:26px 0 40px;font-size:12.5px;color:var(--ink-soft);text-align:center;}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body data-dev="danube">
 
@@ -239,30 +253,37 @@
         <div class="role">New Heights Real Estate &middot; Dubai</div>
       </div>
     </div>
-    <nav>
-      <a href="https://wa.me/971556472153">WhatsApp Taher</a>
-    </nav>
+    <div class="site-bar-right">
+      <div class="lang-switch" id="langSwitch">
+        <button data-lang="en" class="active">English</button>
+        <button data-lang="hi">हिंदी</button>
+        <button data-lang="hinglish">Hinglish</button>
+      </div>
+      <nav>
+        <a href="https://wa.me/971556472153">WhatsApp Taher</a>
+      </nav>
+    </div>
   </div>
 </header>
 
 <section class="hero">
   <div class="wrap">
-    <div class="eyebrow">Investment &amp; ROI Explorer &mdash; v2 (Danube &middot; Imtiaz &middot; IMAN)</div>
-    <h1>Tell us the budget. We'll show what it buys, and what it should return.</h1>
-    <p class="lead">Enter a client's budget (or the cash they have for a down payment) and we'll surface the unit types that fit it across every project on file, each with an estimated value at handover, projected rental income, ROI, and the real all-in cost.</p>
+    <div class="eyebrow" id="eyebrowText"></div>
+    <h1 id="heroTitle"></h1>
+    <p class="lead" id="heroLead"></p>
 
     <div class="mode-toggle" id="modeToggle">
-      <button data-mode="budget" class="active">I know the property budget</button>
-      <button data-mode="dp">I only know the down payment amount</button>
+      <button data-mode="budget" class="active" id="modeAmountBtn"></button>
+      <button data-mode="dp" id="modeDPBtn"></button>
     </div>
 
     <div class="budget-panel" id="budgetPanel">
       <div class="field" id="budgetField">
-        <label for="budgetInput">Client's budget (full property price)</label>
-        <input type="text" id="budgetInput" inputmode="numeric" placeholder="e.g. 1,500,000" value="1,500,000" />
+        <label for="budgetInput" id="amountLabelEl"></label>
+        <input type="text" id="budgetInput" inputmode="numeric" value="1,500,000" />
       </div>
       <div class="field">
-        <label>Currency</label>
+        <label id="currencyLabelEl"></label>
         <div class="currency-toggle" id="currencyToggle">
           <button data-cur="AED" class="active">AED</button>
           <button data-cur="USD">USD</button>
@@ -270,15 +291,15 @@
         </div>
       </div>
       <div class="field">
-        <label for="bedroomFilter">Unit type</label>
+        <label for="bedroomFilter" id="unitTypeLabelEl"></label>
         <select id="bedroomFilter">
-          <option value="ALL">Any</option>
+          <option value="ALL" id="unitTypeAnyOpt"></option>
         </select>
       </div>
       <div class="dp-result" id="dpResult" style="display:none;"></div>
     </div>
     <div class="quick-presets" id="quickPresets">
-      Quick budgets:
+      <span id="quickPresetsLabelEl"></span>
       <button data-amt="900000">AED 900K</button>
       <button data-amt="1200000">AED 1.2M</button>
       <button data-amt="1800000">AED 1.8M</button>
@@ -289,40 +310,167 @@
 
 <main class="wrap">
   <div class="results-meta">
-    <h2>Matches for this budget</h2>
+    <h2 id="resultsHeadingEl"></h2>
     <div class="count" id="resultCount"></div>
   </div>
 
   <div class="dev-tabs" id="devTabs"></div>
   <div id="projectsContainer"></div>
 
-  <p class="disclaimer">
-    Estimated value at handover, rental income, and ROI are indicative, based on comparable market data for each project's area
-    (DLD transaction records, Bayut/Property Monitor market reports, and recent listing data), not a developer guarantee or a formal
-    valuation. Actual appreciation, achievable rent, and service charges vary by unit, market conditions, and finishing. The "all-in"
-    price includes an estimated 4% DLD transfer fee and standard admin/registration costs &mdash; agency commission is not included.
-    A 10% down payment is shown as the lowest commonly seen in the market; whether a specific developer will accept 10% (versus their
-    published 20&ndash;50% structure) depends on that developer's management approval and is not guaranteed. Click "Assumptions" on
-    any project to see or adjust the appreciation and rental yield ranges used. Confirm final figures with the developer and a
-    RICS-qualified valuer before a client commits.
-  </p>
+  <p class="disclaimer" id="disclaimerText"></p>
 </main>
 
 <div class="tray" id="tray" hidden>
   <div class="wrap tray-inner">
-    <div class="tray-info"><b id="trayCount">0</b> properties shortlisted for this client</div>
+    <div class="tray-info"><b id="trayCount">0</b> <span id="trayLabelEl"></span></div>
     <div class="tray-actions">
-      <button class="btn-ghost" id="clearTray">Clear</button>
-      <button class="btn-primary" id="sendTray">Send shortlist to Taher &rarr;</button>
+      <button class="btn-ghost" id="clearTray"></button>
+      <button class="btn-primary" id="sendTray"></button>
     </div>
   </div>
 </div>
 
-<footer class="site">
-  Prices, projections and currency conversions are indicative. Data as listed by each developer, September 2026.
-</footer>
+<footer class="site" id="footerTextEl"></footer>
 
 <script>
+/* ============================================================
+   I18N
+   ============================================================ */
+const I18N = {
+  en: {
+    eyebrow: "Investment & ROI Explorer",
+    heroTitle: "Tell us the amount. We'll show what it buys, and what it should return.",
+    heroLead: "Enter the investment amount you have in mind (or the cash you have available for a down payment) and we'll surface the unit types that fit it across every project on file, each with an estimated value at handover, projected rental income, ROI, and the real all-in cost.",
+    modeAmount: "I know my investment amount",
+    modeDP: "I only know my down payment amount",
+    amountLabel: "Your investment amount (full property price)",
+    currencyLabel: "Currency",
+    unitTypeLabel: "Unit type",
+    unitTypeAny: "Any",
+    dpLabel: "Cash you have available for a down payment",
+    dpPlaceholder: "e.g. 150,000",
+    dpHint: "We'll estimate the property value this unlocks at a 10% down payment.",
+    dpResult: (dp, budget) => `With ${dp} as a 10% down payment, you could reach a property of roughly <b>${budget}</b>.`,
+    dpFine: "10% is the lowest down payment commonly seen in this market — whether a specific developer accepts 10% instead of their published structure (often 20–50%) depends on that developer's management approval on a case-by-case basis, and isn't guaranteed.",
+    dpEnterPrompt: "Enter a down payment amount above.",
+    quickPresetsLabel: "Quick amounts:",
+    resultsHeading: "Matches for this amount",
+    resultCountEnter: "Enter an amount to filter",
+    resultCountFound: (n, devName) => `${n} unit type${n!==1?'s':''} within range across ${devName}`,
+    price: "Price",
+    allInFrom: "All-in from",
+    dpFrom: "10% DP from",
+    valueAtHandover: "Est. value at handover",
+    annualRent: "Est. annual rent",
+    grossYield: "Gross rental yield",
+    available: "available",
+    shortlistBtn: "+ Shortlist",
+    shortlistedBtn: "\u2713 Shortlisted",
+    noMatch: (name) => `No unit type on file for this filter in ${name}.`,
+    assumptionsBtn: "Assumptions",
+    appreciationLabel: "Appreciation to handover (%)",
+    sourceNote: (area, source) => `Default assumption for ${area}, based on recent Dubai off-plan appreciation trends for comparable-stage projects. Rental yield ranges per unit type and this appreciation figure sourced from: ${source}. Adjust either to match your own read of a specific deal.`,
+    disclaimer: `Estimated value at handover, rental income, and ROI are indicative, based on comparable market data for each project's area (DLD transaction records, Bayut/Property Monitor market reports, and recent listing data), not a developer guarantee or a formal valuation. Actual appreciation, achievable rent, and service charges vary by unit, market conditions, and finishing. The "all-in" price includes an estimated 4% DLD transfer fee and standard admin/registration costs &mdash; agency commission is not included. A 10% down payment is shown as the lowest commonly seen in the market; whether a specific developer will accept 10% (versus their published 20&ndash;50% structure) depends on that developer's management approval and is not guaranteed. Click "Assumptions" on any project to see or adjust the appreciation and rental yield ranges used. Confirm final figures with the developer and a RICS-qualified valuer before you commit.`,
+    trayInfo: (n) => `${n} propert${n!==1?'ies':'y'} in your shortlist`,
+    clearBtn: "Clear",
+    sendBtn: "Send shortlist to Taher \u2192",
+    whatsappIntro: "Hi Taher, here's my shortlist:",
+    whatsappOutro: "Can we go over these?",
+    footerText: "Prices, projections and currency conversions are indicative. Data as listed by each developer, September 2026.",
+    projectsCountLabel: (n) => `${n} project${n!==1?'s':''}`,
+  },
+  hi: {
+    eyebrow: "निवेश और रिटर्न (ROI) एक्सप्लोरर",
+    heroTitle: "अपनी राशि बताइए। हम दिखाएँगे इसमें क्या मिलेगा, और इससे कितना रिटर्न मिलना चाहिए।",
+    heroLead: "अपने निवेश की राशि दर्ज करें (या डाउन पेमेंट के लिए उपलब्ध राशि) — हम आपके लिए हर प्रोजेक्ट में उपयुक्त यूनिट टाइप दिखाएँगे, साथ ही हैंडओवर पर अनुमानित मूल्य, संभावित किराया आय, ROI और वास्तविक ऑल-इन लागत भी।",
+    modeAmount: "मुझे अपनी निवेश राशि पता है",
+    modeDP: "मुझे सिर्फ़ अपनी डाउन पेमेंट राशि पता है",
+    amountLabel: "आपकी निवेश राशि (पूरी प्रॉपर्टी कीमत)",
+    currencyLabel: "मुद्रा",
+    unitTypeLabel: "यूनिट टाइप",
+    unitTypeAny: "कोई भी",
+    dpLabel: "डाउन पेमेंट के लिए आपके पास उपलब्ध राशि",
+    dpPlaceholder: "जैसे 150,000",
+    dpHint: "हम 10% डाउन पेमेंट पर इससे मिलने वाली प्रॉपर्टी की अनुमानित कीमत बताएँगे।",
+    dpResult: (dp, budget) => `10% डाउन पेमेंट के तौर पर ${dp} के साथ, आप लगभग <b>${budget}</b> तक की प्रॉपर्टी ले सकते हैं।`,
+    dpFine: "10% इस बाज़ार में सबसे कम देखी जाने वाली डाउन पेमेंट दर है; कोई विशेष डेवलपर अपने प्रकाशित 20–50% स्ट्रक्चर के बजाय 10% स्वीकार करेगा या नहीं, यह उस डेवलपर के मैनेजमेंट की मंज़ूरी पर निर्भर करता है और गारंटीड नहीं है।",
+    dpEnterPrompt: "ऊपर डाउन पेमेंट राशि दर्ज करें।",
+    quickPresetsLabel: "त्वरित राशियाँ:",
+    resultsHeading: "इस राशि के लिए मैच",
+    resultCountEnter: "फ़िल्टर करने के लिए राशि दर्ज करें",
+    resultCountFound: (n, devName) => `${devName} में सीमा के भीतर ${n} यूनिट टाइप`,
+    price: "कीमत",
+    allInFrom: "ऑल-इन शुरू",
+    dpFrom: "10% DP शुरू",
+    valueAtHandover: "हैंडओवर पर अनुमानित मूल्य",
+    annualRent: "अनुमानित वार्षिक किराया",
+    grossYield: "ग्रॉस रेंटल यील्ड",
+    available: "उपलब्ध",
+    shortlistBtn: "+ शॉर्टलिस्ट करें",
+    shortlistedBtn: "\u2713 शॉर्टलिस्टेड",
+    noMatch: (name) => `${name} में इस फ़िल्टर के लिए कोई यूनिट टाइप उपलब्ध नहीं है।`,
+    assumptionsBtn: "Assumptions",
+    appreciationLabel: "हैंडओवर तक एप्रिसिएशन (%)",
+    sourceNote: (area, source) => `${area} के लिए डिफ़ॉल्ट अनुमान, तुलनीय चरण की परियोजनाओं में हाल के दुबई ऑफ-प्लान एप्रिसिएशन ट्रेंड पर आधारित है। प्रति यूनिट टाइप रेंटल यील्ड रेंज और यह एप्रिसिएशन आंकड़ा इस स्रोत से लिया गया है: ${source}। किसी ख़ास डील के अपने आकलन के अनुसार इन्हें बदलें।`,
+    disclaimer: `हैंडओवर पर अनुमानित मूल्य, किराया आय और ROI संकेतात्मक हैं, जो प्रत्येक प्रोजेक्ट के क्षेत्र के तुलनात्मक बाज़ार डेटा (DLD ट्रांज़ैक्शन रिकॉर्ड, Bayut/Property Monitor मार्केट रिपोर्ट और हाल की लिस्टिंग) पर आधारित हैं — ये डेवलपर की गारंटी या औपचारिक वैल्यूएशन नहीं हैं। वास्तविक एप्रिसिएशन, प्राप्त होने वाला किराया और सर्विस चार्ज यूनिट, मार्केट कंडीशन और फ़िनिशिंग के अनुसार अलग-अलग हो सकते हैं। "ऑल-इन" कीमत में अनुमानित 4% DLD ट्रांसफ़र फ़ीस और सामान्य एडमिन/रजिस्ट्रेशन लागत शामिल है — एजेंसी कमीशन शामिल नहीं है। 10% डाउन पेमेंट बाज़ार में सबसे कम देखी जाने वाली दर के रूप में दिखाई गई है; कोई विशेष डेवलपर अपने प्रकाशित 20–50% स्ट्रक्चर के बजाय 10% स्वीकार करेगा या नहीं, यह उस डेवलपर के मैनेजमेंट की मंज़ूरी पर निर्भर करता है और गारंटीड नहीं है। इस्तेमाल किए गए एप्रिसिएशन और रेंटल यील्ड रेंज देखने या बदलने के लिए किसी भी प्रोजेक्ट पर "Assumptions" पर क्लिक करें। कोई भी निर्णय लेने से पहले डेवलपर और एक RICS-क्वालिफ़ाइड वैल्यूअर से अंतिम आँकड़ों की पुष्टि करें।`,
+    trayInfo: (n) => `आपकी शॉर्टलिस्ट में ${n} प्रॉपर्टी हैं`,
+    clearBtn: "साफ़ करें",
+    sendBtn: "Taher को शॉर्टलिस्ट भेजें \u2192",
+    whatsappIntro: "नमस्ते Taher, यह रही मेरी शॉर्टलिस्ट:",
+    whatsappOutro: "क्या हम इन पर चर्चा कर सकते हैं?",
+    footerText: "कीमतें, अनुमान और मुद्रा रूपांतरण संकेतात्मक हैं। डेटा प्रत्येक डेवलपर द्वारा सूचीबद्ध, सितंबर 2026 के अनुसार।",
+    projectsCountLabel: (n) => `${n} प्रोजेक्ट`,
+  },
+  hinglish: {
+    eyebrow: "Investment & ROI Explorer",
+    heroTitle: "Apni amount batayein. Hum dikhayenge isme kya milega, aur kitna return milna chahiye.",
+    heroLead: "Apni investment amount daalein (ya jo cash down payment ke liye available hai), aur hum har project mein aapke liye sahi unit types dikhayenge — handover par estimated value, rental income, ROI, aur real all-in cost ke saath.",
+    modeAmount: "Mujhe apni investment amount pata hai",
+    modeDP: "Mujhe sirf apni down payment amount pata hai",
+    amountLabel: "Aapki investment amount (poori property price)",
+    currencyLabel: "Currency",
+    unitTypeLabel: "Unit type",
+    unitTypeAny: "Koi bhi",
+    dpLabel: "Aapke paas down payment ke liye available cash",
+    dpPlaceholder: "jaise 150,000",
+    dpHint: "Hum 10% down payment par isse milne wali property ki estimated price batayenge.",
+    dpResult: (dp, budget) => `${dp} ko 10% down payment maan kar, aap lagbhag <b>${budget}</b> tak ki property tak pahunch sakte hain.`,
+    dpFine: "10% is market mein sabse kam dekha jaane wala down payment hai — koi specific developer apne published structure (aksar 20–50%) ki jagah 10% accept karega ya nahi, ye unke management approval par depend karta hai aur guaranteed nahi hai.",
+    dpEnterPrompt: "Upar down payment amount daalein.",
+    quickPresetsLabel: "Quick amounts:",
+    resultsHeading: "Is amount ke liye matches",
+    resultCountEnter: "Filter karne ke liye amount daalein",
+    resultCountFound: (n, devName) => `${devName} mein range ke andar ${n} unit type${n!==1?'s':''}`,
+    price: "Price",
+    allInFrom: "All-in shuru",
+    dpFrom: "10% DP shuru",
+    valueAtHandover: "Handover par estimated value",
+    annualRent: "Estimated annual rent",
+    grossYield: "Gross rental yield",
+    available: "available",
+    shortlistBtn: "+ Shortlist karein",
+    shortlistedBtn: "\u2713 Shortlisted",
+    noMatch: (name) => `${name} mein is filter ke liye koi unit type available nahi hai.`,
+    assumptionsBtn: "Assumptions",
+    appreciationLabel: "Handover tak appreciation (%)",
+    sourceNote: (area, source) => `${area} ke liye default assumption, comparable-stage projects ke recent Dubai off-plan appreciation trends par based hai. Har unit type ke liye rental yield range aur ye appreciation figure iss source se liya gaya hai: ${source}. Apni specific deal ke hisaab se inhe adjust kar sakte hain.`,
+    disclaimer: `Handover par estimated value, rental income aur ROI sirf indicative hain, jo har project ke area ke comparable market data (DLD transaction records, Bayut/Property Monitor market reports, aur recent listings) par based hain — ye developer ki guarantee ya formal valuation nahi hai. Actual appreciation, achievable rent aur service charges unit, market conditions aur finishing ke hisaab se alag ho sakte hain. "All-in" price mein estimated 4% DLD transfer fee aur standard admin/registration costs include hain — agency commission include nahi hai. 10% down payment market mein sabse kam dekha jaane wala option hai; koi specific developer apne published 20&ndash;50% structure ki jagah 10% accept karega ya nahi, ye unke management approval par depend karta hai aur guaranteed nahi hai. Kisi bhi project par "Assumptions" click karke used appreciation aur rental yield ranges dekh ya adjust kar sakte hain. Koi bhi decision lene se pehle developer aur ek RICS-qualified valuer se final figures zaroor confirm karein.`,
+    trayInfo: (n) => `Aapki shortlist mein ${n} property hai${n!==1?'n':''}`,
+    clearBtn: "Clear karein",
+    sendBtn: "Taher ko shortlist bhejein \u2192",
+    whatsappIntro: "Hi Taher, ye meri shortlist hai:",
+    whatsappOutro: "Kya hum inhe discuss kar sakte hain?",
+    footerText: "Prices, projections aur currency conversions indicative hain. Data har developer ke hisaab se, September 2026.",
+    projectsCountLabel: (n) => `${n} project${n!==1?'s':''}`,
+  }
+};
+
+let LANG = "en";
+function t(key, ...args){
+  const entry = (I18N[LANG] && I18N[LANG][key] !== undefined) ? I18N[LANG][key] : I18N.en[key];
+  return typeof entry === "function" ? entry(...args) : entry;
+}
+
 /* ============================================================
    DATA LAYER
    Add a new developer by pushing another object into DEVELOPERS.
@@ -330,8 +478,8 @@
    Each project needs: unitTypes[] (from inventory) + market assumptions
    (defaultAppreciationPct, yieldByType per unit type) used for the
    handover value / rent / ROI estimate. `colorId` picks the accent
-   (see body[data-dev] rules in CSS) — reuse "danube"/"imtiaz"/"iman"
-   or add a new one for a new developer.
+   (see body[data-dev] rules in CSS) — reuse "danube"/"imtiaz"/"iman"/
+   "binghatti"/"samana" or add a new one for a new developer.
    ============================================================ */
 
 const WHATSAPP_NUMBER = "971556472153";
@@ -442,7 +590,1395 @@ const DEVELOPERS = [
         ]
       }
     ]
-  }
+  },
+  {
+        "id": "binghatti",
+        "name": "Binghatti Developments",
+        "projects": [
+                {
+                        "id": "binghattiaquarise",
+                        "name": "Binghatti Aquarise",
+                        "area": "Business Bay",
+                        "handover": "Q4 2027",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 13,
+                        "yieldByType": {
+                                "Studio": [
+                                        6.5,
+                                        7.5
+                                ],
+                                "1 Bedroom": [
+                                        6.0,
+                                        7.0
+                                ],
+                                "2 Bedroom": [
+                                        5.5,
+                                        6.5
+                                ],
+                                "3 Bedroom": [
+                                        5.0,
+                                        6.0
+                                ],
+                                "4 Bedroom": [
+                                        4.5,
+                                        5.5
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "Studio",
+                                        "count": 1,
+                                        "min_price": 1200000,
+                                        "max_price": 1200000,
+                                        "min_size": 426.04,
+                                        "max_size": 426.04
+                                },
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 103,
+                                        "min_price": 1880000,
+                                        "max_price": 2401699,
+                                        "min_size": 789.1,
+                                        "max_size": 1027.95
+                                },
+                                {
+                                        "unit_type": "2 Bedroom",
+                                        "count": 5,
+                                        "min_price": 2735399,
+                                        "max_price": 2913999,
+                                        "min_size": 1089.63,
+                                        "max_size": 1301.47
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattielite",
+                        "name": "Binghatti Elite",
+                        "area": "Dubai Production City (IMPZ)",
+                        "handover": "Q3 2026",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 15,
+                        "yieldByType": {
+                                "Studio": [
+                                        7.5,
+                                        8.5
+                                ],
+                                "1 Bedroom": [
+                                        7.0,
+                                        8.0
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "Studio",
+                                        "count": 1,
+                                        "min_price": 650000,
+                                        "max_price": 650000,
+                                        "min_size": 376.31,
+                                        "max_size": 376.31
+                                },
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 5,
+                                        "min_price": 1124999,
+                                        "max_price": 1212499,
+                                        "min_size": 638.94,
+                                        "max_size": 757.34
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattietherea",
+                        "name": "Binghatti Etherea",
+                        "area": "Jumeirah Village Circle (JVC)",
+                        "handover": "Q4 2027",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 16,
+                        "yieldByType": {
+                                "1 Bedroom": [
+                                        7.0,
+                                        7.8
+                                ],
+                                "2 Bedroom": [
+                                        6.5,
+                                        7.2
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 60,
+                                        "min_price": 1127999,
+                                        "max_price": 1236099,
+                                        "min_size": 575.12,
+                                        "max_size": 774.14
+                                },
+                                {
+                                        "unit_type": "2 Bedroom",
+                                        "count": 63,
+                                        "min_price": 1597999,
+                                        "max_price": 1691999,
+                                        "min_size": 755.52,
+                                        "max_size": 1329.56
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattighost",
+                        "name": "Binghatti Ghost",
+                        "area": "Al Jaddaf",
+                        "handover": "Q2 2027",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 17,
+                        "yieldByType": {
+                                "1 Bedroom": [
+                                        7.0,
+                                        8.0
+                                ],
+                                "3 Bedroom": [
+                                        6.0,
+                                        7.0
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 1,
+                                        "min_price": 1250000,
+                                        "max_price": 1250000,
+                                        "min_size": 862.73,
+                                        "max_size": 862.73
+                                },
+                                {
+                                        "unit_type": "3 Bedroom",
+                                        "count": 36,
+                                        "min_price": 2700000,
+                                        "max_price": 2700000,
+                                        "min_size": 1602.64,
+                                        "max_size": 1903.06
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattihaven",
+                        "name": "Binghatti Haven",
+                        "area": "Dubai Sports City",
+                        "handover": "Ready",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 10,
+                        "yieldByType": {
+                                "2 Bedroom": [
+                                        6.5,
+                                        7.5
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "2 Bedroom",
+                                        "count": 1,
+                                        "min_price": 1739999,
+                                        "max_price": 1739999,
+                                        "min_size": 1166.96,
+                                        "max_size": 1166.96
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattihillcrest",
+                        "name": "Binghatti Hillcrest",
+                        "area": "Al Barsha South",
+                        "handover": "Q4 2026",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 14,
+                        "yieldByType": {
+                                "Studio": [
+                                        7.0,
+                                        8.0
+                                ],
+                                "1 Bedroom": [
+                                        6.5,
+                                        7.5
+                                ],
+                                "2 Bedroom": [
+                                        6.0,
+                                        7.0
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "Studio",
+                                        "count": 6,
+                                        "min_price": 771739,
+                                        "max_price": 845999,
+                                        "min_size": 718.27,
+                                        "max_size": 745.62
+                                },
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 2,
+                                        "min_price": 1289679,
+                                        "max_price": 1294379,
+                                        "min_size": 715.16,
+                                        "max_size": 734.53
+                                },
+                                {
+                                        "unit_type": "2 Bedroom",
+                                        "count": 2,
+                                        "min_price": 2002199,
+                                        "max_price": 2009719,
+                                        "min_size": 1134.19,
+                                        "max_size": 1134.19
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattiivory",
+                        "name": "Binghatti Ivory",
+                        "area": "Al Jaddaf",
+                        "handover": "Ready",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 10,
+                        "yieldByType": {
+                                "2 Bedroom": [
+                                        6.0,
+                                        7.0
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "2 Bedroom",
+                                        "count": 2,
+                                        "min_price": 2887499,
+                                        "max_price": 2887499,
+                                        "min_size": 1459.27,
+                                        "max_size": 1460.02
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattiluxuria",
+                        "name": "Binghatti Luxuria",
+                        "area": "Jumeirah Village Triangle (JVT)",
+                        "handover": "Q3 2027",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 16,
+                        "yieldByType": {
+                                "Studio": [
+                                        7.8,
+                                        8.5
+                                ],
+                                "1 Bedroom": [
+                                        7.0,
+                                        7.8
+                                ],
+                                "2 Bedroom": [
+                                        6.5,
+                                        7.2
+                                ],
+                                "2 Bedroom Royal Suite": [
+                                        6.0,
+                                        6.8
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "Studio",
+                                        "count": 26,
+                                        "min_price": 720039,
+                                        "max_price": 729439,
+                                        "min_size": 336.26,
+                                        "max_size": 362.1
+                                },
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 49,
+                                        "min_price": 1174059,
+                                        "max_price": 1293439,
+                                        "min_size": 651.43,
+                                        "max_size": 838.19
+                                },
+                                {
+                                        "unit_type": "2 Bedroom",
+                                        "count": 24,
+                                        "min_price": 1693879,
+                                        "max_price": 1748399,
+                                        "min_size": 963.26,
+                                        "max_size": 963.26
+                                },
+                                {
+                                        "unit_type": "2 Bedroom Royal Suite",
+                                        "count": 2,
+                                        "min_price": 1832999,
+                                        "max_price": 1832999,
+                                        "min_size": 1356.36,
+                                        "max_size": 1360.99
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattipinnacle",
+                        "name": "Binghatti Pinnacle",
+                        "area": "Al Jaddaf",
+                        "handover": "Ready",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 10,
+                        "yieldByType": {
+                                "2 Bedroom": [
+                                        6.0,
+                                        7.0
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "2 Bedroom",
+                                        "count": 1,
+                                        "min_price": 1900000,
+                                        "max_price": 1900000,
+                                        "min_size": 1078.44,
+                                        "max_size": 1078.44
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattiroyale",
+                        "name": "Binghatti Royale",
+                        "area": "Al Jaddaf",
+                        "handover": "Q4 2025",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 8,
+                        "yieldByType": {
+                                "1 Bedroom Royal Suite": [
+                                        6.0,
+                                        7.0
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "1 Bedroom Royal Suite",
+                                        "count": 2,
+                                        "min_price": 1699999,
+                                        "max_price": 1699999,
+                                        "min_size": 806.51,
+                                        "max_size": 806.51
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattiruby",
+                        "name": "Binghatti Ruby",
+                        "area": "Al Jaddaf",
+                        "handover": "Ready",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 10,
+                        "yieldByType": {
+                                "1 Bedroom": [
+                                        6.5,
+                                        7.5
+                                ],
+                                "2 Bedroom": [
+                                        6.0,
+                                        7.0
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 2,
+                                        "min_price": 1300000,
+                                        "max_price": 1300000,
+                                        "min_size": 1001.37,
+                                        "max_size": 1001.37
+                                },
+                                {
+                                        "unit_type": "2 Bedroom",
+                                        "count": 1,
+                                        "min_price": 2200000,
+                                        "max_price": 2200000,
+                                        "min_size": 1461.52,
+                                        "max_size": 1461.52
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattiskyrise",
+                        "name": "Binghatti Sky Rise",
+                        "area": "Business Bay",
+                        "handover": "Q4 2027",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 13,
+                        "yieldByType": {
+                                "1 Bedroom": [
+                                        6.0,
+                                        7.0
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 16,
+                                        "min_price": 1985099,
+                                        "max_price": 2492099,
+                                        "min_size": 830.76,
+                                        "max_size": 1021.93
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattiskyblade",
+                        "name": "Binghatti Skyblade",
+                        "area": "Business Bay",
+                        "handover": "Q4 2027",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 13,
+                        "yieldByType": {
+                                "Studio": [
+                                        6.5,
+                                        7.5
+                                ],
+                                "3 Bedroom Burj Royal Wing": [
+                                        4.5,
+                                        5.5
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "Studio",
+                                        "count": 1,
+                                        "min_price": 1659099,
+                                        "max_price": 1659099,
+                                        "min_size": 385.56,
+                                        "max_size": 385.56
+                                },
+                                {
+                                        "unit_type": "3 Bedroom Burj Royal Wing",
+                                        "count": 10,
+                                        "min_price": 12591299,
+                                        "max_price": 12671199,
+                                        "min_size": 2196.48,
+                                        "max_size": 2197.34
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattiskyflame1",
+                        "name": "Binghatti Skyflame 1",
+                        "area": "Majan",
+                        "handover": "Q4 2027",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 19,
+                        "yieldByType": {
+                                "1 Bedroom": [
+                                        7.5,
+                                        8.8
+                                ],
+                                "2 Bedroom": [
+                                        7.0,
+                                        8.0
+                                ],
+                                "2 Bedroom Royal Suite": [
+                                        6.5,
+                                        7.5
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 119,
+                                        "min_price": 1033999,
+                                        "max_price": 1183459,
+                                        "min_size": 680.06,
+                                        "max_size": 746.69
+                                },
+                                {
+                                        "unit_type": "2 Bedroom",
+                                        "count": 5,
+                                        "min_price": 1555699,
+                                        "max_price": 1797702,
+                                        "min_size": 1209.54,
+                                        "max_size": 1256.69
+                                },
+                                {
+                                        "unit_type": "2 Bedroom Royal Suite",
+                                        "count": 8,
+                                        "min_price": 2208999,
+                                        "max_price": 2265400,
+                                        "min_size": 2112.63,
+                                        "max_size": 2234.48
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattiskyflame2",
+                        "name": "Binghatti Skyflame 2",
+                        "area": "Majan",
+                        "handover": "Q4 2027",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 19,
+                        "yieldByType": {
+                                "1 Bedroom": [
+                                        7.5,
+                                        8.8
+                                ],
+                                "2 Bedroom": [
+                                        7.0,
+                                        8.0
+                                ],
+                                "2 Bedroom Royal Suite": [
+                                        6.5,
+                                        7.5
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 143,
+                                        "min_price": 1033999,
+                                        "max_price": 1136459,
+                                        "min_size": 702.78,
+                                        "max_size": 739.91
+                                },
+                                {
+                                        "unit_type": "2 Bedroom",
+                                        "count": 14,
+                                        "min_price": 1597999,
+                                        "max_price": 1642179,
+                                        "min_size": 1212.45,
+                                        "max_size": 1254.1
+                                },
+                                {
+                                        "unit_type": "2 Bedroom Royal Suite",
+                                        "count": 2,
+                                        "min_price": 2265400,
+                                        "max_price": 2274800,
+                                        "min_size": 2112.74,
+                                        "max_size": 2234.59
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattiskyhall",
+                        "name": "Binghatti Skyhall",
+                        "area": "Business Bay",
+                        "handover": "Q1 2027",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 13,
+                        "yieldByType": {
+                                "Studio": [
+                                        6.5,
+                                        7.5
+                                ],
+                                "1 Bedroom": [
+                                        6.0,
+                                        7.0
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "Studio",
+                                        "count": 2,
+                                        "min_price": 1135520,
+                                        "max_price": 1262420,
+                                        "min_size": 424.43,
+                                        "max_size": 477.27
+                                },
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 1,
+                                        "min_price": 1978042,
+                                        "max_price": 1978042,
+                                        "min_size": 834.96,
+                                        "max_size": 834.96
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattispectre",
+                        "name": "Binghatti Spectre",
+                        "area": "Al Jaddaf",
+                        "handover": "Q4 2028",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 17,
+                        "yieldByType": {
+                                "1 Bedroom": [
+                                        7.0,
+                                        8.0
+                                ],
+                                "2 Bedroom": [
+                                        6.5,
+                                        7.5
+                                ],
+                                "Office": [
+                                        7.0,
+                                        9.0
+                                ],
+                                "Retail": [
+                                        7.0,
+                                        8.5
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 33,
+                                        "min_price": 1222999,
+                                        "max_price": 1565999,
+                                        "min_size": 698.58,
+                                        "max_size": 1580.14
+                                },
+                                {
+                                        "unit_type": "Office",
+                                        "count": 133,
+                                        "min_price": 1576999,
+                                        "max_price": 10060999,
+                                        "min_size": 597.07,
+                                        "max_size": 4017.52
+                                },
+                                {
+                                        "unit_type": "2 Bedroom",
+                                        "count": 14,
+                                        "min_price": 2029999,
+                                        "max_price": 2043999,
+                                        "min_size": 1207.6,
+                                        "max_size": 1220.95
+                                },
+                                {
+                                        "unit_type": "Retail",
+                                        "count": 24,
+                                        "min_price": 5439999,
+                                        "max_price": 19470999,
+                                        "min_size": 1399.63,
+                                        "max_size": 5371.41
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattistarlight",
+                        "name": "Binghatti Starlight",
+                        "area": "Al Jaddaf",
+                        "handover": "Q3 2026",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 12,
+                        "yieldByType": {
+                                "1 Bedroom": [
+                                        6.5,
+                                        7.5
+                                ],
+                                "2 Bedroom": [
+                                        6.0,
+                                        7.0
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 1,
+                                        "min_price": 1350000,
+                                        "max_price": 1350000,
+                                        "min_size": 758.1,
+                                        "max_size": 758.1
+                                },
+                                {
+                                        "unit_type": "2 Bedroom",
+                                        "count": 9,
+                                        "min_price": 1895322,
+                                        "max_price": 2094320,
+                                        "min_size": 1190.49,
+                                        "max_size": 1519.54
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattititania",
+                        "name": "Binghatti Titania",
+                        "area": "Majan",
+                        "handover": "Q3 2027",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 19,
+                        "yieldByType": {
+                                "Studio": [
+                                        7.8,
+                                        9.0
+                                ],
+                                "1 Bedroom": [
+                                        7.5,
+                                        8.5
+                                ],
+                                "2 Bedroom": [
+                                        7.0,
+                                        8.0
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "Studio",
+                                        "count": 1,
+                                        "min_price": 647659,
+                                        "max_price": 647659,
+                                        "min_size": 374.72,
+                                        "max_size": 374.72
+                                },
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 8,
+                                        "min_price": 994519,
+                                        "max_price": 1093219,
+                                        "min_size": 673.71,
+                                        "max_size": 841.52
+                                },
+                                {
+                                        "unit_type": "2 Bedroom",
+                                        "count": 4,
+                                        "min_price": 1456999,
+                                        "max_price": 1462639,
+                                        "min_size": 1197.61,
+                                        "max_size": 1199.66
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattitwilight",
+                        "name": "Binghatti Twilight",
+                        "area": "Al Jaddaf",
+                        "handover": "Q4 2026",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 12,
+                        "yieldByType": {
+                                "2 Bedroom": [
+                                        6.0,
+                                        7.0
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "2 Bedroom",
+                                        "count": 1,
+                                        "min_price": 1879999,
+                                        "max_price": 1879999,
+                                        "min_size": 1074.35,
+                                        "max_size": 1074.35
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattivintage",
+                        "name": "Binghatti Vintage",
+                        "area": "Majan",
+                        "handover": "Q3 2027",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 19,
+                        "yieldByType": {
+                                "1 Bedroom": [
+                                        7.5,
+                                        8.5
+                                ],
+                                "2 Bedroom Royal Suite": [
+                                        6.5,
+                                        7.5
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 7,
+                                        "min_price": 1046219,
+                                        "max_price": 1109199,
+                                        "min_size": 706.11,
+                                        "max_size": 892.54
+                                },
+                                {
+                                        "unit_type": "2 Bedroom Royal Suite",
+                                        "count": 1,
+                                        "min_price": 1661919,
+                                        "max_price": 1661919,
+                                        "min_size": 1570.99,
+                                        "max_size": 1570.99
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattiwraith",
+                        "name": "Binghatti Wraith",
+                        "area": "Al Jaddaf",
+                        "handover": "Q4 2027",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 17,
+                        "yieldByType": {
+                                "1 Bedroom": [
+                                        7.0,
+                                        8.0
+                                ],
+                                "2 Bedroom": [
+                                        6.5,
+                                        7.5
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 113,
+                                        "min_price": 1221999,
+                                        "max_price": 1466399,
+                                        "min_size": 662.09,
+                                        "max_size": 1436.34
+                                },
+                                {
+                                        "unit_type": "2 Bedroom",
+                                        "count": 21,
+                                        "min_price": 1973999,
+                                        "max_price": 2208999,
+                                        "min_size": 1112.34,
+                                        "max_size": 1737.3
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattigrove",
+                        "name": "Binghatti Grove",
+                        "area": "Al Jaddaf",
+                        "handover": "Ready",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 8,
+                        "yieldByType": {
+                                "1 Bedroom Royal Suite": [
+                                        6.0,
+                                        7.0
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "1 Bedroom Royal Suite",
+                                        "count": 10,
+                                        "min_price": 2064999,
+                                        "max_price": 2094499,
+                                        "min_size": 908.26,
+                                        "max_size": 915.04
+                                }
+                        ]
+                },
+                {
+                        "id": "binghattiamberhall",
+                        "name": "Binghatti Amberhall",
+                        "area": "Al Jaddaf",
+                        "handover": "Q4 2026",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 12,
+                        "yieldByType": {
+                                "2 Bedroom Royal Suite": [
+                                        6.0,
+                                        7.0
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "2 Bedroom Royal Suite",
+                                        "count": 1,
+                                        "min_price": 2424939,
+                                        "max_price": 2424939,
+                                        "min_size": 1611.53,
+                                        "max_size": 1611.53
+                                }
+                        ]
+                },
+                {
+                        "id": "bugattiresidencesbybingh",
+                        "name": "Bugatti Residences by Binghatti",
+                        "area": "Business Bay",
+                        "handover": "Q3 2027",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 13,
+                        "yieldByType": {
+                                "Riviera - Cannes": [
+                                        4.5,
+                                        5.5
+                                ],
+                                "Riviera - Saint Tropez": [
+                                        4.5,
+                                        5.5
+                                ],
+                                "5 Bedroom": [
+                                        4.0,
+                                        5.0
+                                ],
+                                "Sky Mansion Penthouse": [
+                                        3.5,
+                                        4.5
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "Riviera - Cannes",
+                                        "count": 18,
+                                        "min_price": 19400000,
+                                        "max_price": 39799999,
+                                        "min_size": 2162.58,
+                                        "max_size": 5293.48
+                                },
+                                {
+                                        "unit_type": "Riviera - Saint Tropez",
+                                        "count": 26,
+                                        "min_price": 29400000,
+                                        "max_price": 42000000,
+                                        "min_size": 3025.74,
+                                        "max_size": 5903.14
+                                },
+                                {
+                                        "unit_type": "5 Bedroom",
+                                        "count": 2,
+                                        "min_price": 69000000,
+                                        "max_price": 75000000,
+                                        "min_size": 7496.31,
+                                        "max_size": 8836.85
+                                },
+                                {
+                                        "unit_type": "Sky Mansion Penthouse",
+                                        "count": 1,
+                                        "min_price": 175000000,
+                                        "max_price": 175000000,
+                                        "min_size": 10160.81,
+                                        "max_size": 10160.81
+                                }
+                        ]
+                },
+                {
+                        "id": "burjbinghattijacobcoresi",
+                        "name": "Burj Binghatti Jacob & Co Residences",
+                        "area": "Business Bay",
+                        "handover": "Q2 2027",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 12,
+                        "yieldByType": {
+                                "Ruby Villa": [
+                                        4.0,
+                                        5.0
+                                ],
+                                "Diamond Villa": [
+                                        3.5,
+                                        4.5
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "Ruby Villa",
+                                        "count": 72,
+                                        "min_price": 13200000,
+                                        "max_price": 16459999,
+                                        "min_size": 2261.5,
+                                        "max_size": 3263.84
+                                },
+                                {
+                                        "unit_type": "Diamond Villa",
+                                        "count": 15,
+                                        "min_price": 16000000,
+                                        "max_price": 18200000,
+                                        "min_size": 3357.04,
+                                        "max_size": 4247.97
+                                }
+                        ]
+                },
+                {
+                        "id": "mercedesbenzplacesbingha",
+                        "name": "Mercedes-Benz Places | Binghatti",
+                        "area": "Meydan (Nad Al Sheba 1)",
+                        "handover": "Q1 2027",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 18,
+                        "yieldByType": {
+                                "2 Bedroom Type 1": [
+                                        5.0,
+                                        6.0
+                                ],
+                                "3 Bedroom Type 1": [
+                                        4.5,
+                                        5.5
+                                ],
+                                "3 Bedroom Type 2": [
+                                        4.5,
+                                        5.5
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "2 Bedroom Type 1",
+                                        "count": 11,
+                                        "min_price": 11499999,
+                                        "max_price": 14999999,
+                                        "min_size": 1835.87,
+                                        "max_size": 1836.31
+                                },
+                                {
+                                        "unit_type": "3 Bedroom Type 1",
+                                        "count": 26,
+                                        "min_price": 19999999,
+                                        "max_price": 24699999,
+                                        "min_size": 2619.31,
+                                        "max_size": 2709.05
+                                },
+                                {
+                                        "unit_type": "3 Bedroom Type 2",
+                                        "count": 2,
+                                        "min_price": 25399999,
+                                        "max_price": 26199999,
+                                        "min_size": 3251.03,
+                                        "max_size": 3288.9
+                                }
+                        ]
+                },
+                {
+                        "id": "onebybinghatti",
+                        "name": "One By Binghatti",
+                        "area": "Business Bay",
+                        "handover": "Q1 2027",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 13,
+                        "yieldByType": {
+                                "1 Bedroom": [
+                                        6.0,
+                                        7.0
+                                ],
+                                "2 Bedroom Suite": [
+                                        5.5,
+                                        6.5
+                                ],
+                                "3 Bedroom Suite": [
+                                        5.0,
+                                        6.0
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 35,
+                                        "min_price": 2008499,
+                                        "max_price": 2476499,
+                                        "min_size": 781.35,
+                                        "max_size": 1240.0
+                                },
+                                {
+                                        "unit_type": "2 Bedroom Suite",
+                                        "count": 3,
+                                        "min_price": 3509999,
+                                        "max_price": 3743999,
+                                        "min_size": 1587.24,
+                                        "max_size": 1598.22
+                                },
+                                {
+                                        "unit_type": "3 Bedroom Suite",
+                                        "count": 1,
+                                        "min_price": 7583333,
+                                        "max_price": 7583333,
+                                        "min_size": 4154.33,
+                                        "max_size": 4154.33
+                                }
+                        ]
+                },
+                {
+                        "id": "visioniconic",
+                        "name": "Vision Iconic",
+                        "area": "Meydan (Nad Al Sheba 1)",
+                        "handover": "Q4 2028",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 20,
+                        "yieldByType": {
+                                "1 Bedroom": [
+                                        6.5,
+                                        7.5
+                                ],
+                                "2 Bedroom": [
+                                        6.0,
+                                        7.0
+                                ],
+                                "2 Bedroom Royal Suite": [
+                                        5.5,
+                                        6.5
+                                ],
+                                "3 Bedroom": [
+                                        5.5,
+                                        6.5
+                                ],
+                                "3 Bedroom Royal Suite": [
+                                        5.0,
+                                        6.0
+                                ],
+                                "4 Bedroom": [
+                                        4.5,
+                                        5.5
+                                ],
+                                "5 Bedroom": [
+                                        4.0,
+                                        5.0
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 620,
+                                        "min_price": 2443060,
+                                        "max_price": 2799320,
+                                        "min_size": 694.27,
+                                        "max_size": 861.11
+                                },
+                                {
+                                        "unit_type": "2 Bedroom",
+                                        "count": 138,
+                                        "min_price": 3619000,
+                                        "max_price": 3883140,
+                                        "min_size": 970.8,
+                                        "max_size": 1075.53
+                                },
+                                {
+                                        "unit_type": "2 Bedroom Royal Suite",
+                                        "count": 5,
+                                        "min_price": 4512000,
+                                        "max_price": 4579680,
+                                        "min_size": 2081.52,
+                                        "max_size": 2081.63
+                                },
+                                {
+                                        "unit_type": "3 Bedroom",
+                                        "count": 45,
+                                        "min_price": 5875000,
+                                        "max_price": 6354400,
+                                        "min_size": 1197.81,
+                                        "max_size": 1312.23
+                                },
+                                {
+                                        "unit_type": "3 Bedroom Royal Suite",
+                                        "count": 6,
+                                        "min_price": 6768000,
+                                        "max_price": 6815000,
+                                        "min_size": 2565.9,
+                                        "max_size": 2565.9
+                                },
+                                {
+                                        "unit_type": "4 Bedroom",
+                                        "count": 2,
+                                        "min_price": 11761280,
+                                        "max_price": 11881600,
+                                        "min_size": 1984.97,
+                                        "max_size": 2057.95
+                                },
+                                {
+                                        "unit_type": "5 Bedroom",
+                                        "count": 2,
+                                        "min_price": 17831800,
+                                        "max_price": 17842140,
+                                        "min_size": 2475.7,
+                                        "max_size": 2556.0
+                                }
+                        ]
+                },
+                {
+                        "id": "maybach6mercedesbenzplac",
+                        "name": "Maybach 6 (Mercedes-Benz Places | Binghatti City)",
+                        "area": "Meydan (Nad Al Sheba 1)",
+                        "handover": "Q2 2028",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 20,
+                        "yieldByType": {
+                                "Studio": [
+                                        6.5,
+                                        7.5
+                                ],
+                                "1 Bedroom": [
+                                        6.0,
+                                        7.0
+                                ],
+                                "2 Bedroom": [
+                                        5.5,
+                                        6.5
+                                ],
+                                "3 Bedroom": [
+                                        5.0,
+                                        6.0
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "Studio",
+                                        "count": 274,
+                                        "min_price": 1269000,
+                                        "max_price": 1339500,
+                                        "min_size": 341.11,
+                                        "max_size": 401.82
+                                },
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 39,
+                                        "min_price": 2162000,
+                                        "max_price": 2292660,
+                                        "min_size": 617.31,
+                                        "max_size": 617.31
+                                },
+                                {
+                                        "unit_type": "2 Bedroom",
+                                        "count": 103,
+                                        "min_price": 3008000,
+                                        "max_price": 3196000,
+                                        "min_size": 980.16,
+                                        "max_size": 980.16
+                                },
+                                {
+                                        "unit_type": "3 Bedroom",
+                                        "count": 40,
+                                        "min_price": 4653000,
+                                        "max_price": 5193500,
+                                        "min_size": 1284.35,
+                                        "max_size": 1528.48
+                                }
+                        ]
+                },
+                {
+                        "id": "maybachultimateluxurymer",
+                        "name": "Maybach Ultimate Luxury (Mercedes-Benz Places | Binghatti City)",
+                        "area": "Meydan (Nad Al Sheba 1)",
+                        "handover": "Q2 2028",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 20,
+                        "yieldByType": {
+                                "Studio": [
+                                        6.5,
+                                        7.5
+                                ],
+                                "1 Bedroom": [
+                                        6.0,
+                                        7.0
+                                ],
+                                "2 Bedroom": [
+                                        5.5,
+                                        6.5
+                                ],
+                                "3 Bedroom": [
+                                        5.0,
+                                        6.0
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "Studio",
+                                        "count": 640,
+                                        "min_price": 1269000,
+                                        "max_price": 1326340,
+                                        "min_size": 341.11,
+                                        "max_size": 401.82
+                                },
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 36,
+                                        "min_price": 2162000,
+                                        "max_price": 2256000,
+                                        "min_size": 617.31,
+                                        "max_size": 617.31
+                                },
+                                {
+                                        "unit_type": "2 Bedroom",
+                                        "count": 118,
+                                        "min_price": 3008000,
+                                        "max_price": 3149000,
+                                        "min_size": 980.05,
+                                        "max_size": 980.16
+                                },
+                                {
+                                        "unit_type": "3 Bedroom",
+                                        "count": 56,
+                                        "min_price": 4653000,
+                                        "max_price": 5063780,
+                                        "min_size": 1284.35,
+                                        "max_size": 1528.48
+                                }
+                        ]
+                },
+                {
+                        "id": "projectmaybachmercedesbe",
+                        "name": "Project Maybach (Mercedes-Benz Places | Binghatti City)",
+                        "area": "Meydan (Nad Al Sheba 1)",
+                        "handover": "Q4 2027",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 20,
+                        "yieldByType": {
+                                "Studio": [
+                                        6.5,
+                                        7.5
+                                ],
+                                "1 Bedroom": [
+                                        6.0,
+                                        7.0
+                                ],
+                                "2 Bedroom": [
+                                        5.5,
+                                        6.5
+                                ],
+                                "3 Bedroom": [
+                                        5.0,
+                                        6.0
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "Studio",
+                                        "count": 418,
+                                        "min_price": 1269000,
+                                        "max_price": 1334800,
+                                        "min_size": 362.31,
+                                        "max_size": 408.28
+                                },
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 22,
+                                        "min_price": 2164820,
+                                        "max_price": 2237200,
+                                        "min_size": 632.16,
+                                        "max_size": 632.16
+                                },
+                                {
+                                        "unit_type": "2 Bedroom",
+                                        "count": 61,
+                                        "min_price": 3008000,
+                                        "max_price": 3280600,
+                                        "min_size": 992.0,
+                                        "max_size": 1212.77
+                                },
+                                {
+                                        "unit_type": "3 Bedroom",
+                                        "count": 36,
+                                        "min_price": 4653000,
+                                        "max_price": 4981060,
+                                        "min_size": 1321.38,
+                                        "max_size": 1567.87
+                                }
+                        ]
+                }
+        ]
+},
+  {
+        "id": "samana",
+        "name": "Samana Developers",
+        "projects": [
+                {
+                        "id": "samanabusinesshub",
+                        "name": "Samana Business Hub",
+                        "area": "Downtown Jebel Ali",
+                        "handover": "Q2 2029",
+                        "source": "Binghatti/Samana official project pages & DLD/agency inventory sheets, Sep 2026; area yield ranges via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 18,
+                        "yieldByType": {
+                                "Retail": [
+                                        7.0,
+                                        9.0
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "Retail",
+                                        "count": 11,
+                                        "min_price": 2136826,
+                                        "max_price": 10448616,
+                                        "min_size": 615.7,
+                                        "max_size": 2574.3
+                                }
+                        ]
+                }
+        ]
+}
 ];
 
 /* ============================================================
@@ -468,10 +2004,12 @@ function parseNum(str){
 }
 function effectiveBudgetAED(){
   if (mode === "budget") {
-    const raw = parseNum(document.getElementById("budgetInput").value);
+    const el = document.getElementById("budgetInput");
+    const raw = el ? parseNum(el.value) : null;
     return raw === null ? null : raw / FX[currency];
   } else {
-    const dpRaw = parseNum(document.getElementById("dpInput").value);
+    const el = document.getElementById("dpInput");
+    const dpRaw = el ? parseNum(el.value) : null;
     if (dpRaw === null) return null;
     const dpAED = dpRaw / FX[currency];
     return dpAED / (dpPct/100);
@@ -505,15 +2043,52 @@ function unitMatchesBudget(unit, budgetAED){
 }
 
 /* ============================================================
+   STATIC TEXT (re-rendered whenever language changes)
+   ============================================================ */
+function renderStaticText(){
+  document.getElementById("eyebrowText").textContent = t("eyebrow");
+  document.getElementById("heroTitle").textContent = t("heroTitle");
+  document.getElementById("heroLead").textContent = t("heroLead");
+  document.getElementById("modeAmountBtn").textContent = t("modeAmount");
+  document.getElementById("modeDPBtn").textContent = t("modeDP");
+  document.getElementById("currencyLabelEl").textContent = t("currencyLabel");
+  document.getElementById("unitTypeLabelEl").textContent = t("unitTypeLabel");
+  document.getElementById("unitTypeAnyOpt").textContent = t("unitTypeAny");
+  document.getElementById("quickPresetsLabelEl").textContent = t("quickPresetsLabel");
+  document.getElementById("resultsHeadingEl").textContent = t("resultsHeading");
+  document.getElementById("disclaimerText").innerHTML = t("disclaimer");
+  document.getElementById("trayLabelEl").textContent = t("trayInfo", 0).replace(/^0\s*/, "").replace(/0\s*/, "");
+  document.getElementById("clearTray").textContent = t("clearBtn");
+  document.getElementById("sendTray").textContent = t("sendBtn");
+  document.getElementById("footerTextEl").textContent = t("footerText");
+
+  if (mode === "budget") {
+    const label = document.getElementById("amountLabelEl");
+    if (label) label.textContent = t("amountLabel");
+    const input = document.getElementById("budgetInput");
+    if (input) input.placeholder = "e.g. 1,500,000";
+  } else {
+    const label = document.querySelector('label[for="dpInput"]');
+    if (label) label.textContent = t("dpLabel");
+    const input = document.getElementById("dpInput");
+    if (input) input.placeholder = t("dpPlaceholder");
+    const hint = document.querySelector("#budgetField .hint");
+    if (hint) hint.textContent = t("dpHint");
+  }
+}
+
+/* ============================================================
    RENDER
    ============================================================ */
 function populateBedroomFilter(){
   const sel = document.getElementById("bedroomFilter");
+  const existing = new Set([...sel.options].map(o => o.value));
   const types = new Set();
   DEVELOPERS.forEach(d => d.projects.forEach(p => p.unitTypes.forEach(u => types.add(u.unit_type))));
-  [...types].sort().forEach(t => {
+  [...types].sort().forEach(ty => {
+    if (existing.has(ty)) return;
     const opt = document.createElement("option");
-    opt.value = t; opt.textContent = t;
+    opt.value = ty; opt.textContent = ty;
     sel.appendChild(opt);
   });
 }
@@ -524,7 +2099,7 @@ function renderDevTabs(){
   DEVELOPERS.forEach((dev, i) => {
     const btn = document.createElement("button");
     btn.className = i === activeDevIdx ? "active" : "";
-    btn.innerHTML = dev.name + ' <span class="n">(' + dev.projects.length + ' project' + (dev.projects.length!==1?'s':'') + ')</span>';
+    btn.innerHTML = dev.name + ' <span class="n">(' + t("projectsCountLabel", dev.projects.length) + ')</span>';
     btn.onclick = () => { activeDevIdx = i; document.body.setAttribute("data-dev", dev.id); renderDevTabs(); renderProjects(); };
     el.appendChild(btn);
   });
@@ -538,12 +2113,13 @@ function renderDPResult(){
   const box = document.getElementById("dpResult");
   if (mode !== "dp") { box.style.display = "none"; return; }
   box.style.display = "block";
-  const dpRaw = parseNum(document.getElementById("dpInput").value);
-  if (dpRaw === null) { box.innerHTML = "Enter a down payment amount above."; return; }
+  const inputEl = document.getElementById("dpInput");
+  const dpRaw = inputEl ? parseNum(inputEl.value) : null;
+  if (dpRaw === null) { box.innerHTML = t("dpEnterPrompt"); return; }
   const dpAED = dpRaw / FX[currency];
   const impliedBudgetAED = dpAED / (dpPct/100);
-  box.innerHTML = `With ${fmtMoney(dpAED)} as a ${dpPct}% down payment, this client could reach a property of roughly <b>${fmtMoney(impliedBudgetAED)}</b>.
-    <span class="fine">10% is the lowest down payment commonly seen in this market &mdash; whether a specific developer accepts 10% instead of their published structure (often 20&ndash;50%) depends on that developer's management approval on a case-by-case basis, and isn't guaranteed.</span>`;
+  box.innerHTML = t("dpResult", fmtMoney(dpAED), fmtMoney(impliedBudgetAED)) +
+    `<span class="fine">${t("dpFine")}</span>`;
 }
 
 function renderProjects(){
@@ -568,7 +2144,7 @@ function renderProjects(){
           <span>Handover ${project.handover}</span>
         </div>
       </div>
-      <button class="assumptions-btn" data-pid="${project.id}">Assumptions</button>
+      <button class="assumptions-btn" data-pid="${project.id}">${t("assumptionsBtn")}</button>
     `;
     block.appendChild(head);
 
@@ -578,10 +2154,10 @@ function renderProjects(){
     assumpRow.id = "assump-" + project.id;
     assumpRow.innerHTML = `
       <div class="a-field">
-        <label>Appreciation to handover (%)</label>
+        <label>${t("appreciationLabel")}</label>
         <input type="number" min="0" max="60" step="1" value="${appreciationPct}" data-pid="${project.id}" class="appreciationInput" />
       </div>
-      <div class="src">Default assumption for ${project.area}, based on recent Dubai off-plan appreciation trends for comparable-stage projects. Rental yield ranges per unit type and this appreciation figure sourced from: ${project.source}. Adjust either to match your own read of a specific deal.</div>
+      <div class="src">${t("sourceNote", project.area, project.source)}</div>
     `;
     block.appendChild(assumpRow);
 
@@ -598,28 +2174,28 @@ function renderProjects(){
       row.innerHTML = `
         <div>
           <div class="unit-type-name">${unit.unit_type}</div>
-          <div class="unit-type-sub">${unit.count} available &middot; ${Math.round(unit.min_size)}&ndash;${Math.round(unit.max_size)} sq ft</div>
+          <div class="unit-type-sub">${unit.count} ${t("available")} &middot; ${Math.round(unit.min_size)}&ndash;${Math.round(unit.max_size)} sq ft</div>
         </div>
         <div>
-          <div class="metric-label">Price</div>
+          <div class="metric-label">${t("price")}</div>
           <div class="metric-value">${fmtMoney(unit.min_price)}${unit.min_price!==unit.max_price ? ' &ndash; ' + fmtMoney(unit.max_price) : ''}</div>
-          <div class="all-in">All-in from ${fmtMoney(m.allInLow)} &middot; 10% DP from ${fmtMoney(m.minDpLow)}</div>
+          <div class="all-in">${t("allInFrom")} ${fmtMoney(m.allInLow)} &middot; ${t("dpFrom")} ${fmtMoney(m.minDpLow)}</div>
         </div>
         <div>
-          <div class="metric-label">Est. value at handover</div>
+          <div class="metric-label">${t("valueAtHandover")}</div>
           <div class="metric-value">${fmtMoney(m.valueAtHandoverLow)}${m.valueAtHandoverLow!==m.valueAtHandoverHigh ? ' &ndash; ' + fmtMoney(m.valueAtHandoverHigh) : ''}</div>
         </div>
         <div>
-          <div class="metric-label">Est. annual rent</div>
+          <div class="metric-label">${t("annualRent")}</div>
           <div class="metric-value">${fmtMoney(m.rentLow)}${m.rentLow!==m.rentHigh ? ' &ndash; ' + fmtMoney(m.rentHigh) : ''}</div>
         </div>
         <div>
-          <div class="metric-label">Gross rental yield</div>
+          <div class="metric-label">${t("grossYield")}</div>
           <div class="metric-value roi">${m.grossYieldLabel}</div>
         </div>
         <div class="col-select">
           <button class="select-btn ${selected ? 'selected' : ''}" data-pid="${project.id}" data-utype="${unit.unit_type}">
-            ${selected ? '\u2713 Shortlisted' : '+ Shortlist'}
+            ${selected ? t("shortlistedBtn") : t("shortlistBtn")}
           </button>
         </div>
       `;
@@ -629,7 +2205,7 @@ function renderProjects(){
     if (matchingUnits.length === 0) {
       const empty = document.createElement("div");
       empty.className = "no-match";
-      empty.textContent = "No unit type on file for this filter in " + project.name + ".";
+      empty.textContent = t("noMatch", project.name);
       block.appendChild(empty);
     }
 
@@ -637,8 +2213,8 @@ function renderProjects(){
   });
 
   document.getElementById("resultCount").textContent = budgetAED === null
-    ? "Enter a budget to filter"
-    : totalMatches + " unit type" + (totalMatches!==1?'s':'') + " within range across " + dev.name;
+    ? t("resultCountEnter")
+    : t("resultCountFound", totalMatches, dev.name);
 
   container.querySelectorAll(".assumptions-btn").forEach(btn => {
     btn.onclick = () => document.getElementById("assump-" + btn.dataset.pid).classList.toggle("open");
@@ -658,7 +2234,7 @@ function renderProjects(){
       if (idx >= 0) {
         shortlist.splice(idx, 1);
       } else {
-        if (shortlist.length >= 6) { alert("You can shortlist up to 6 options for a client at a time."); return; }
+        if (shortlist.length >= 6) { alert("You can shortlist up to 6 options at a time."); return; }
         shortlist.push({
           devName: dev.name, projectId: pid, projectName: project.name, area: project.area,
           unitType: utype, priceLabel: fmtMoney(unit.min_price) + (unit.min_price!==unit.max_price ? ' - ' + fmtMoney(unit.max_price) : ''),
@@ -676,20 +2252,33 @@ function renderTray(){
   if (shortlist.length === 0) { tray.hidden = true; return; }
   tray.hidden = false;
   document.getElementById("trayCount").textContent = shortlist.length;
+  document.getElementById("trayLabelEl").textContent = t("trayInfo", shortlist.length).replace(/^\S+\s*/, "");
 }
 
 function buildWhatsAppMessage(){
-  let msg = "Hi Taher, here's a shortlist based on my client's budget:\n\n";
+  let msg = t("whatsappIntro") + "\n\n";
   shortlist.forEach((s, i) => {
     msg += (i+1) + ". " + s.projectName + " (" + s.area + ") - " + s.unitType + "\n   " + s.priceLabel + " | Handover " + s.handover + "\n\n";
   });
-  msg += "Can we go over these?";
+  msg += t("whatsappOutro");
   return msg;
 }
 
 /* ============================================================
    EVENTS
    ============================================================ */
+document.getElementById("langSwitch").addEventListener("click", (e) => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  LANG = btn.dataset.lang;
+  document.querySelectorAll("#langSwitch button").forEach(b => b.classList.toggle("active", b === btn));
+  renderStaticText();
+  renderDevTabs();
+  renderDPResult();
+  renderProjects();
+  renderTray();
+});
+
 document.getElementById("modeToggle").addEventListener("click", (e) => {
   const btn = e.target.closest("button");
   if (!btn) return;
@@ -699,15 +2288,15 @@ document.getElementById("modeToggle").addEventListener("click", (e) => {
   const quickPresets = document.getElementById("quickPresets");
   if (mode === "dp") {
     budgetField.innerHTML = `
-      <label for="dpInput">Cash available for down payment</label>
-      <input type="text" id="dpInput" inputmode="numeric" placeholder="e.g. 150,000" value="150,000" />
-      <div class="hint">We'll estimate the property value this unlocks at a 10% down payment.</div>
+      <label for="dpInput">${t("dpLabel")}</label>
+      <input type="text" id="dpInput" inputmode="numeric" placeholder="${t('dpPlaceholder')}" value="150,000" />
+      <div class="hint">${t("dpHint")}</div>
     `;
     document.getElementById("dpInput").addEventListener("input", () => { renderDPResult(); renderProjects(); });
     quickPresets.style.display = "none";
   } else {
     budgetField.innerHTML = `
-      <label for="budgetInput">Client's budget (full property price)</label>
+      <label for="budgetInput" id="amountLabelEl">${t("amountLabel")}</label>
       <input type="text" id="budgetInput" inputmode="numeric" placeholder="e.g. 1,500,000" value="1,500,000" />
     `;
     document.getElementById("budgetInput").addEventListener("input", renderProjects);
@@ -725,10 +2314,12 @@ document.getElementById("currencyToggle").addEventListener("click", (e) => {
   document.querySelectorAll("#currencyToggle button").forEach(b => b.classList.toggle("active", b === btn));
   if (currentAED !== null) {
     if (mode === "budget") {
-      document.getElementById("budgetInput").value = Math.round(currentAED * FX[currency]).toLocaleString("en-US");
+      const el = document.getElementById("budgetInput");
+      if (el) el.value = Math.round(currentAED * FX[currency]).toLocaleString("en-US");
     } else {
       const dpAED = currentAED * (dpPct/100);
-      document.getElementById("dpInput").value = Math.round(dpAED * FX[currency]).toLocaleString("en-US");
+      const el = document.getElementById("dpInput");
+      if (el) el.value = Math.round(dpAED * FX[currency]).toLocaleString("en-US");
     }
   }
   renderDPResult();
@@ -763,6 +2354,7 @@ document.getElementById("sendTray").addEventListener("click", () => {
    ============================================================ */
 populateBedroomFilter();
 document.body.setAttribute("data-dev", DEVELOPERS[activeDevIdx].id);
+renderStaticText();
 renderDevTabs();
 renderProjects();
 renderTray();

@@ -1,1409 +1,771 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Payment Plan Explorer — Taher Husain, Dubai</title>
-<meta name="description" content="Pick a developer and project, choose your currency and preferred payment structure, and send your requirement straight to Taher.">
-
-<!--
-  =====================================================================
-  HOW TO ADD / EDIT PROJECTS
-  =====================================================================
-  Scroll to the block that starts with:  const PROPERTIES = [
-  Each project is one object, grouped under its developer (see the
-  "developer" field — projects sharing the same developer name are
-  shown together on the site with a click-to-expand list). Copy an
-  existing one and change the values. All prices are entered in AED
-  (the base currency) — the page converts live for INR / USD display,
-  so never hand-edit those.
-
-  Three payment plan "type"s are supported:
-  1) "milestone"      — % at booking, then % at construction stages, rest on handover.
-  2) "monthly"         — % at booking, then a fixed % of price every month until handover.
-  3) "posthandover"    — % at booking + during construction, remainder paid monthly AFTER handover.
-
-  Project data below (names, unit mixes, sizes and starting prices) was
-  checked against each developer's own listings — treat the "starting
-  price" and size ranges as indicative entry points, since exact unit
-  pricing moves with floor, view and availability. Always confirm the
-  live figure with the developer before a client transfers funds.
-  =====================================================================
--->
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Investment &amp; ROI Explorer — Taher Husain, Dubai</title>
+<meta name="description" content="Enter a budget, see which Dubai projects fit it, and compare estimated value at handover, rental income and ROI side by side." />
 <style>
   :root{
-    --bg: #fbf8f2;
-    --surface: #ffffff;
-    --surface-2: #f5efe1;
-    --line: #e6dcc6;
-    --line-soft: #efe7d5;
-    --navy: #1f2b3d;
-    --gold: #a97c34;
-    --gold-soft: #dcb878;
-    --teal: #2f8f77;
-    --rose: #b5563f;
-    --text: #26313f;
-    --text-muted: #64717f;
-    --text-faint: #9aa3ac;
-    --radius: 14px;
-    --radius-sm: 9px;
-    --shadow: 0 1px 2px rgba(31,43,61,.05), 0 6px 20px rgba(31,43,61,.06);
-  }
+    --paper:#F7F4EC;
+    --paper-2:#EFE9DB;
+    --ink:#1C1B1F;
+    --ink-soft:#5B5850;
+    --navy:#16233A;
+    --line:#E1D8C4;
+    --white:#FFFFFF;
+    --gold:#C08A3E;
+    --danger:#A6483C;
+    --ok:#2F6F53;
+    --radius:3px;
 
-  *{ box-sizing: border-box; }
-  html{ scroll-behavior: smooth; }
+    /* developer accent, swapped by JS via body[data-dev] */
+    --accent:#2E5C8A;
+    --accent-soft:#E8EFF6;
+  }
+  body[data-dev="danube"]{ --accent:#1F5FA8; --accent-soft:#E6EEF7; }
+  body[data-dev="imtiaz"]{ --accent:#7C1F2B; --accent-soft:#F6E9EA; }
+  body[data-dev="iman"]{ --accent:#9C7A2E; --accent-soft:#F5EFDF; }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
   body{
-    margin:0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    -webkit-font-smoothing: antialiased;
-    line-height: 1.5;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
   }
-  ::selection{ background: var(--gold-soft); color: #1f2b3d; }
-  a{ color: inherit; }
+  h1,h2,h3,.serif{
+    font-family:'Cormorant Garamond', Georgia, serif;
+    font-weight:600;
+    letter-spacing:.01em;
+    color:var(--navy);
+  }
+  a{color:inherit;}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 24px;}
 
-  .mono{ font-family: 'IBM Plex Mono', monospace; }
-  .serif{ font-family: 'Fraunces', serif; }
-
-  :focus-visible{ outline: 2px solid var(--gold); outline-offset: 3px; }
-
-  @media (prefers-reduced-motion: reduce){ *{ animation: none !important; transition: none !important; } }
-
-  .wrap{ max-width: 1120px; margin: 0 auto; padding: 0 24px; }
-
-  header.site{ border-bottom: 1px solid var(--line-soft); padding: 20px 0; background: var(--surface); }
-  header.site .wrap{ display:flex; align-items:center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-  .brand{ display:flex; align-items:center; gap: 12px; }
+  /* ---------- header ---------- */
+  header.site{
+    border-bottom:1px solid var(--line);
+    background:var(--white);
+  }
+  .top-strip{height:5px;background:linear-gradient(90deg,#1F5FA8 0 33%,#7C1F2B 33% 66%,#9C7A2E 66% 100%);}
+  .site-bar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 0;
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
   .brand-mark{
-    width: 40px; height: 40px; border-radius: 50%;
-    background: var(--navy); color: var(--gold-soft);
-    display:flex; align-items:center; justify-content:center;
-    font-family:'Fraunces', serif; font-size: 17px; flex: none;
+    width:38px;height:38px;border-radius:50%;
+    background:var(--navy);color:var(--paper);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;
   }
-  .brand-name{ font-size: 14.5px; font-weight: 600; }
-  .brand-name span{ display:block; color: var(--text-muted); font-size: 12px; font-weight: 400; margin-top: 2px; }
-  .site-cta{ font-size: 13px; color: var(--text-muted); }
-
-  .hero{ padding: 64px 0 48px; }
-  .hero h1{
-    font-family:'Fraunces', serif; font-weight: 500;
-    font-size: clamp(32px, 4.6vw, 50px); line-height: 1.1;
-    letter-spacing: -0.01em; margin: 0 0 18px; max-width: 16ch; color: var(--navy);
+  .brand-text .name{font-size:15px;font-weight:600;color:var(--navy);}
+  .brand-text .role{font-size:12px;color:var(--ink-soft);}
+  .site-bar nav a{
+    font-size:13px;color:var(--ink-soft);text-decoration:none;margin-left:22px;
+    border-bottom:1px solid transparent;padding-bottom:2px;
   }
-  .hero p{ color: var(--text-muted); font-size: 16.5px; line-height: 1.65; max-width: 52ch; margin: 0; }
+  .site-bar nav a:hover{border-color:var(--gold);color:var(--gold);}
 
-  .section{ padding: 48px 0; }
-  .section-head{ display:flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
-  .section-head h2{ font-family:'Fraunces', serif; font-weight: 500; font-size: 23px; margin: 0; color: var(--navy); }
-  .section-head .count{ font-family:'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-faint); }
+  /* ---------- hero ---------- */
+  .hero{padding:46px 0 30px;}
+  .hero .eyebrow{font-size:13px;color:var(--gold);font-weight:600;margin-bottom:10px;}
+  .hero h1{font-size:38px;line-height:1.14;margin:0 0 14px;max-width:660px;}
+  .hero p.lead{font-size:16px;color:var(--ink-soft);max-width:580px;margin:0 0 28px;}
 
-  /* developer accordion groups */
-  .dev-list{ display:flex; flex-direction:column; gap: 14px; }
-  .dev-group{ background: var(--surface); border: 1px solid var(--line-soft); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
-  .dev-header{
-    display:flex; align-items:center; justify-content: space-between; gap: 14px;
-    padding: 16px 20px; cursor: pointer; background: none; border: none; width: 100%;
-    font-family: inherit; text-align: left; color: inherit;
+  /* ---------- budget panel ---------- */
+  .mode-toggle{display:flex;gap:0;margin-bottom:16px;border:1px solid var(--line);border-radius:20px;width:fit-content;overflow:hidden;background:var(--white);}
+  .mode-toggle button{
+    padding:9px 18px;border:none;background:transparent;font-size:13px;color:var(--ink-soft);
+    cursor:pointer;font-family:'Inter',sans-serif;
   }
-  .dev-header:hover{ background: var(--surface-2); }
-  .dev-header-left{ display:flex; align-items:center; gap: 13px; min-width: 0; }
-  .dev-badge{
-    width: 38px; height: 38px; border-radius: 50%; flex: none; color: #fff;
-    display:flex; align-items:center; justify-content:center; font-family:'Fraunces', serif; font-size: 15px;
+  .mode-toggle button.active{background:var(--navy);color:var(--white);}
+
+  .budget-panel{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-top:3px solid var(--gold);
+    padding:26px 28px;
+    display:grid;
+    grid-template-columns:1.3fr 1fr 1fr;
+    gap:22px;
+    align-items:end;
   }
-  .dev-name{ font-family:'Fraunces', serif; font-size: 16.5px; color: var(--navy); }
-  .dev-count{ font-family:'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--text-faint); margin-top: 2px; }
-  .dev-arrow{ font-size: 12px; color: var(--text-muted); transition: transform .2s ease; flex: none; }
-  .dev-group.open .dev-arrow{ transform: rotate(180deg); }
-  .dev-projects{ display:none; padding: 4px 20px 20px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
-  .dev-group.open .dev-projects{ display:grid; }
-
-  .card{
-    background: var(--surface); border: 1px solid var(--line-soft); border-radius: var(--radius);
-    box-shadow: var(--shadow); cursor: pointer; display:flex; flex-direction: column; overflow: hidden;
-    transition: transform .15s ease, box-shadow .15s ease; text-align: left; font-family: inherit; color: inherit; width: 100%;
+  @media(max-width:780px){.budget-panel{grid-template-columns:1fr;}}
+  .field label{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:6px;}
+  .field .hint{font-size:11px;color:var(--ink-soft);margin-top:5px;}
+  .field input, .field select{
+    width:100%;padding:11px 12px;
+    border:1px solid var(--line);background:var(--paper);
+    font-family:'Inter',sans-serif;font-size:15px;color:var(--ink);
+    border-radius:var(--radius);
   }
-  .card:hover, .card:focus-visible{ transform: translateY(-2px); box-shadow: 0 10px 26px rgba(31,43,61,.1); }
-
-  .card-visual{ height: 130px; position: relative; }
-  .card-visual svg{ width: 100%; height: 100%; display:block; }
-
-  .card-body{ padding: 18px 20px 20px; display:flex; flex-direction: column; gap: 9px; flex: 1; }
-  .card-developer{ font-size: 11.5px; font-weight: 600; letter-spacing: .03em; color: var(--teal); }
-  .card-name{ font-family:'Fraunces', serif; font-size: 19px; line-height: 1.25; margin: 0; color: var(--navy); }
-  .card-meta{ font-size: 12.5px; color: var(--text-muted); display:flex; gap: 6px; flex-wrap: wrap; }
-  .card-meta span:not(:last-child)::after{ content: "·"; margin-left: 6px; color: var(--text-faint); }
-  .card-foot{ margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line-soft); display:flex; align-items: flex-end; justify-content: space-between; }
-  .card-price{ font-family:'IBM Plex Mono', monospace; font-size: 16px; color: var(--navy); font-weight: 600; }
-  .card-price small{ display:block; font-size: 10.5px; color: var(--text-faint); font-weight: 400; margin-bottom: 3px; }
-  .card-arrow{ font-size: 12.5px; color: var(--gold); font-weight: 600; white-space: nowrap; }
-
-  #detail{ display:none; }
-  #detail.active{ display:block; }
-  #catalog.hidden{ display:none; }
-
-  .back-link{
-    display:inline-flex; align-items:center; gap: 8px; background: var(--surface); border: 1px solid var(--line-soft);
-    border-radius: 999px; color: var(--text-muted); font-size: 13px; font-weight: 500; cursor: pointer;
-    padding: 8px 16px; margin-bottom: 26px;
-  }
-  .back-link:hover{ color: var(--gold); border-color: var(--gold-soft); }
-
-  .detail-header{ display:flex; gap: 26px; padding-bottom: 28px; flex-wrap: wrap; }
-  .detail-visual{ width: 220px; height: 160px; flex: none; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
-  .detail-visual svg{ width:100%; height:100%; display:block; }
-  .detail-info{ flex: 1; min-width: 240px; }
-  .detail-developer{ font-size: 12px; font-weight: 600; color: var(--teal); margin-bottom: 6px; }
-  .detail-info h2{ font-family:'Fraunces', serif; font-weight: 500; font-size: 28px; margin: 0 0 10px; color: var(--navy); }
-  .detail-meta{ color: var(--text-muted); font-size: 13.5px; margin-bottom: 16px; }
-  .detail-meta span:not(:last-child)::after{ content: "·"; margin: 0 8px; color: var(--text-faint); }
-  .detail-price{ display:flex; gap: 30px; flex-wrap: wrap; }
-  .price-block small{ display:block; font-size: 11px; color: var(--text-faint); margin-bottom: 4px; }
-  .price-block strong{ font-family:'IBM Plex Mono', monospace; font-weight: 600; font-size: 22px; color: var(--gold); }
-
-  /* currency toggle */
-  .currency-toggle{ display:inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; margin-top: 10px; }
+  .field input:focus, .field select:focus{outline:2px solid var(--gold);outline-offset:1px;}
+  .currency-toggle{display:flex;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
   .currency-toggle button{
-    border: none; background: var(--surface); color: var(--text-muted); font-family:'IBM Plex Mono', monospace;
-    font-size: 12.5px; padding: 7px 15px; cursor: pointer;
+    flex:1;padding:11px 0;background:var(--paper);border:none;
+    font-family:'Inter',sans-serif;font-size:13px;color:var(--ink-soft);cursor:pointer;
+    border-right:1px solid var(--line);
   }
-  .currency-toggle button + button{ border-left: 1px solid var(--line); }
-  .currency-toggle button.active{ background: var(--navy); color: #fff; }
+  .currency-toggle button:last-child{border-right:none;}
+  .currency-toggle button.active{background:var(--navy);color:var(--white);}
 
-  /* card-style section wrapper */
-  .panel{ background: var(--surface); border: 1px solid var(--line-soft); border-radius: var(--radius); box-shadow: var(--shadow); padding: 28px 28px 30px; margin: 26px 0; }
-  .panel h3{ font-family:'Fraunces', serif; font-weight: 500; font-size: 20px; margin: 0 0 6px; color: var(--navy); }
-  .panel .sub{ color: var(--text-muted); font-size: 13.5px; margin: 0 0 20px; }
-
-  /* fixed cost card */
-  .cost-list{ display:flex; flex-direction: column; gap: 0; }
-  .cost-row{ display:flex; justify-content: space-between; gap: 16px; padding: 11px 0; border-bottom: 1px dashed var(--line-soft); font-size: 14px; }
-  .cost-row:last-child{ border-bottom: none; }
-  .cost-row .k{ color: var(--text); }
-  .cost-row .k small{ display:block; color: var(--text-faint); font-size: 11.5px; margin-top: 2px; }
-  .cost-row .v{ font-family:'IBM Plex Mono', monospace; color: var(--navy); font-weight: 600; white-space: nowrap; }
-  .cost-total{ display:flex; justify-content: space-between; padding-top: 14px; margin-top: 6px; border-top: 1px solid var(--line); font-size: 15px; font-weight: 600; }
-  .cost-total .v{ font-family:'IBM Plex Mono', monospace; color: var(--gold); font-size: 18px; }
-  .cost-note{ font-size: 12.5px; color: var(--text-muted); margin-top: 16px; line-height: 1.6; background: var(--surface-2); border-radius: var(--radius-sm); padding: 12px 14px; }
-  .cost-extra{ margin-top: 14px; }
-  .cost-extra summary{ cursor: pointer; font-size: 13px; font-weight: 600; color: var(--teal); list-style: none; }
-  .cost-extra summary::-webkit-details-marker{ display:none; }
-  .cost-extra summary::before{ content: "+ "; }
-  .cost-extra[open] summary::before{ content: "– "; }
-  .cost-extra ul{ margin: 12px 0 0; padding-left: 18px; font-size: 13px; color: var(--text-muted); line-height: 1.8; }
-
-  /* special offer */
-  .offer-panel{ background: linear-gradient(135deg, #fbf3e3, #fef9ef); border: 1px solid var(--gold-soft); }
-  .offer-badge{
-    display:inline-flex; align-items:center; gap: 6px; background: var(--navy); color: var(--gold-soft);
-    font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 999px; margin-bottom: 14px;
+  .dp-result{
+    grid-column:1/-1;background:var(--paper-2);border:1px dashed var(--line);
+    padding:14px 16px;font-size:13.5px;color:var(--ink);border-radius:var(--radius);
   }
-  .offer-panel p{ color: var(--text); font-size: 14.5px; line-height: 1.7; margin: 0 0 14px; }
-  .offer-panel details{ margin-top: 8px; }
-  .offer-panel summary{ cursor: pointer; font-size: 13px; font-weight: 600; color: var(--gold); list-style: none; }
-  .offer-panel summary::-webkit-details-marker{ display:none; }
-  .offer-panel summary::before{ content: "Terms & conditions ▾ "; }
-  .offer-panel details[open] summary::before{ content: "Terms & conditions ▴ "; }
-  .offer-panel details ol{ margin: 12px 0 0; padding-left: 18px; font-size: 12.5px; color: var(--text-muted); line-height: 1.8; }
+  .dp-result b{color:var(--navy);}
+  .dp-result .fine{display:block;font-size:11.5px;color:var(--ink-soft);margin-top:6px;}
 
-  /* ledger timeline */
-  .ledger-label{ font-size: 12px; font-weight: 600; color: var(--text-faint); margin-bottom: 32px; }
-  .ledger-rail{ position: relative; height: 3px; background: var(--line); border-radius: 3px; margin: 0 6px; }
-  .ledger-fill{ position:absolute; left:0; top:0; height: 100%; border-radius: 3px; background: var(--gold); transition: width .4s ease; }
-  .ledger-nodes{ position: relative; height: 0; }
-  .ledger-node{ position:absolute; top: -6px; transform: translateX(-50%); width: 15px; height: 15px; border-radius: 50%; background: var(--surface); border: 3px solid var(--line); }
-  .ledger-node.covered{ border-color: var(--gold); background: var(--gold-soft); }
-  .ledger-tags{ position: relative; margin-top: 24px; height: 92px; }
-  .ledger-tag{ position: absolute; transform: translateX(-50%); text-align: center; width: 112px; }
-  .ledger-tag .pct{ font-family:'IBM Plex Mono', monospace; font-size: 13px; color: var(--gold); font-weight: 600; margin-bottom: 3px; }
-  .ledger-tag .amt{ font-family:'IBM Plex Mono', monospace; font-size: 11px; color: var(--navy); margin-bottom: 4px; }
-  .ledger-tag .lbl{ font-size: 10.5px; color: var(--text-muted); line-height: 1.35; }
-
-  /* request form */
-  .chip-row{ display:flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
-  .chip{
-    display:inline-flex; align-items:center; gap: 8px; padding: 9px 15px; border-radius: 999px;
-    border: 1px solid var(--line); background: var(--surface); font-size: 13px; cursor: pointer; user-select: none;
+  .quick-presets{margin-top:14px;font-size:12.5px;color:var(--ink-soft);}
+  .quick-presets button{
+    background:none;border:1px solid var(--line);border-radius:20px;
+    padding:5px 12px;margin-right:8px;margin-top:8px;font-size:12.5px;
+    color:var(--navy);cursor:pointer;font-family:'Inter',sans-serif;
   }
-  .chip input{ accent-color: var(--gold); }
-  .chip.checked{ border-color: var(--gold); background: #fbf1de; color: var(--navy); font-weight: 600; }
+  .quick-presets button:hover{background:var(--accent-soft);border-color:var(--accent);}
 
-  .form-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  @media (max-width: 720px){ .form-grid{ grid-template-columns: 1fr; } }
-
-  .field{ display:flex; flex-direction: column; gap: 7px; }
-  .field label{ font-size: 12.5px; font-weight: 600; color: var(--text); }
-  .field .input-row{ display:flex; align-items:center; border: 1px solid var(--line); background: var(--bg); border-radius: var(--radius-sm); }
-  .field .input-row span{ padding: 0 12px; font-family:'IBM Plex Mono', monospace; font-size: 13px; color: var(--text-faint); border-right: 1px solid var(--line); }
-  .field input, .field textarea{ flex: 1; background: none; border: none; color: var(--text); font-family: inherit; font-size: 14.5px; padding: 12px 13px; min-width: 0; border-radius: var(--radius-sm); }
-  .field textarea{ border: 1px solid var(--line); background: var(--bg); resize: vertical; min-height: 70px; }
-  .field input:focus, .field textarea:focus{ outline: none; }
-  .field .hint{ font-size: 11.5px; color: var(--text-faint); }
-
-  .result-box{ background: var(--surface-2); border-radius: var(--radius-sm); padding: 20px 22px; margin-top: 24px; }
-  .result-box .status{ font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 12px; display:flex; align-items:center; gap: 8px; }
-  .status-dot{ width:8px; height:8px; border-radius:50%; background: var(--teal); flex:none; }
-  .status-dot.warn{ background: var(--gold); }
-  .result-lines{ display:flex; flex-direction:column; gap: 9px; }
-  .result-line{ display:flex; justify-content: space-between; gap: 16px; font-size: 13.5px; padding-bottom: 9px; border-bottom: 1px dashed var(--line); }
-  .result-line:last-child{ border-bottom: none; padding-bottom: 0; }
-  .result-line .k{ color: var(--text-muted); }
-  .result-line .v{ font-family:'IBM Plex Mono', monospace; color: var(--navy); text-align: right; }
-  .result-line .v.hl{ color: var(--gold); }
-
-  .send-row{ display:flex; align-items:center; gap: 14px; margin-top: 24px; flex-wrap: wrap; }
-  .btn-send{
-    display:inline-flex; align-items:center; gap: 9px; background: #25D366; color: #fff; border: none;
-    padding: 13px 22px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; cursor: pointer;
+  /* ---------- results meta bar ---------- */
+  .results-meta{
+    display:flex;justify-content:space-between;align-items:baseline;
+    margin:38px 0 16px;flex-wrap:wrap;gap:10px;
   }
-  .btn-send:hover{ background: #1cb85a; }
-  .send-note{ font-size: 12px; color: var(--text-faint); }
+  .results-meta h2{font-size:24px;margin:0;}
+  .results-meta .count{font-size:13px;color:var(--ink-soft);}
 
-  /* schedule table */
-  table{ width: 100%; border-collapse: collapse; font-size: 13.5px; }
-  thead th{ text-align: left; font-size: 11px; font-weight: 600; color: var(--text-faint); padding: 0 14px 12px; border-bottom: 1px solid var(--line); }
-  tbody td{ padding: 13px 14px; border-bottom: 1px solid var(--line-soft); color: var(--text-muted); }
-  tbody tr:last-child td{ border-bottom: none; }
-  tbody td.stage{ color: var(--text); }
-  tbody td.num{ font-family:'IBM Plex Mono', monospace; color: var(--navy); text-align: right; }
-  tbody tr.covered td.num{ color: var(--gold); font-weight: 600; }
-
-  .contact-strip{ border-top: 1px solid var(--line-soft); background: var(--surface); padding: 40px 0; }
-  .contact-strip .wrap{ display:flex; align-items:center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
-  .contact-strip h3{ font-family:'Fraunces', serif; font-weight: 500; font-size: 20px; margin: 0 0 6px; color: var(--navy); }
-  .contact-strip p{ color: var(--text-muted); font-size: 13px; margin: 0; }
-  .contact-btns{ display:flex; gap: 12px; flex-wrap: wrap; }
-  .btn-wa, .btn-call{ display:inline-flex; align-items:center; gap: 8px; padding: 12px 20px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap; }
-  .btn-wa{ background: #25D366; color: #fff; }
-  .btn-call{ background: none; border: 1px solid var(--line); color: var(--text); }
-  .btn-wa:hover{ background: #1cb85a; }
-  .btn-call:hover{ border-color: var(--gold); color: var(--gold); }
-
-  footer.site{ border-top: 1px solid var(--line-soft); padding: 24px 0; color: var(--text-faint); font-size: 12px; background: var(--surface); }
-  footer.site .wrap{ display:flex; justify-content: space-between; align-items:center; gap: 16px; flex-wrap: wrap; }
-  footer.site .foot-name{ color: var(--text-muted); display:flex; align-items:center; gap: 8px; flex-wrap: wrap; }
-  footer.site .foot-name strong{ color: var(--text); font-weight: 600; }
-  .agent-link{
-    background:none; border:none; padding:0; color: var(--text-faint); font-size: 11px;
-    cursor:pointer; text-decoration: underline; text-underline-offset: 2px; font-family: inherit;
+  /* ---------- developer tabs ---------- */
+  .dev-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
+  .dev-tabs button{
+    padding:9px 18px;border:1px solid var(--line);background:var(--white);
+    font-family:'Inter',sans-serif;font-size:13.5px;color:var(--ink);
+    cursor:pointer;border-radius:20px;
   }
-  .agent-link:hover{ color: var(--gold); }
+  .dev-tabs button.active{background:var(--dev-color,var(--navy));color:var(--white);border-color:var(--dev-color,var(--navy));}
+  .dev-tabs button .n{color:var(--ink-soft);font-size:12px;}
+  .dev-tabs button.active .n{color:rgba(255,255,255,.75);}
 
-  @media (max-width: 560px){
-    .wrap{ padding: 0 18px; }
-    .detail-header{ gap: 18px; }
-    .detail-visual{ width: 100%; height: 140px; }
-    .panel{ padding: 22px 18px 24px; }
+  /* ---------- project block ---------- */
+  .project{
+    background:var(--white);border:1px solid var(--line);border-left:4px solid var(--accent);margin-bottom:22px;
+  }
+  .project-head{
+    padding:20px 24px;border-bottom:1px solid var(--line);
+    display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;
+  }
+  .project-head h3{font-size:22px;margin:0 0 4px;}
+  .project-head .meta{font-size:12.5px;color:var(--ink-soft);}
+  .project-head .meta span{margin-right:14px;}
+  .assumptions-btn{
+    font-size:12px;color:var(--accent);background:none;border:1px solid var(--accent);
+    border-radius:20px;padding:5px 12px;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;
+  }
+  .assumptions-row{
+    display:none;padding:14px 24px;background:var(--accent-soft);
+    border-bottom:1px solid var(--line);font-size:13px;color:var(--ink);
+    gap:22px;flex-wrap:wrap;
+  }
+  .assumptions-row.open{display:flex;}
+  .assumptions-row .a-field{display:flex;align-items:center;gap:8px;}
+  .assumptions-row input[type=number]{width:64px;padding:5px 6px;border:1px solid var(--line);border-radius:var(--radius);}
+  .assumptions-row .src{font-size:11px;color:var(--ink-soft);width:100%;margin-top:2px;}
+
+  .unit-row{
+    padding:18px 24px;border-bottom:1px solid var(--line);
+    display:grid;grid-template-columns:1.3fr repeat(4,1fr) auto;gap:16px;align-items:center;
+  }
+  .unit-row:last-child{border-bottom:none;}
+  .unit-row.dim{opacity:.35;}
+  @media(max-width:900px){
+    .unit-row{grid-template-columns:1fr 1fr;grid-auto-rows:auto;}
+    .unit-row .col-select{grid-column:1/-1;order:99;}
+  }
+  .unit-type-name{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;color:var(--navy);}
+  .unit-type-sub{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  .metric-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft);margin-bottom:3px;}
+  .metric-value{font-size:15px;color:var(--ink);font-weight:600;}
+  .metric-value.roi{color:var(--ok);}
+  .all-in{font-size:10.5px;color:var(--ink-soft);margin-top:3px;}
+  .col-select{text-align:right;}
+  .select-btn{
+    padding:8px 16px;border:1px solid var(--navy);background:var(--white);
+    color:var(--navy);font-size:12.5px;border-radius:20px;cursor:pointer;font-family:'Inter',sans-serif;
+    white-space:nowrap;
+  }
+  .select-btn.selected{background:var(--ok);color:var(--white);border-color:var(--ok);}
+  .select-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+  .no-match{padding:28px 24px;color:var(--ink-soft);font-size:14px;}
+
+  /* ---------- disclaimer ---------- */
+  .disclaimer{
+    font-size:12px;color:var(--ink-soft);border-top:1px solid var(--line);
+    margin-top:8px;padding:16px 0 60px;max-width:780px;
   }
 
-  /* agent shortlist builder */
-  .admin-panel{ display:none; }
-  .admin-panel.open{ display:block; }
-  .admin-row{ border: 1px solid var(--line-soft); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 14px; background: var(--surface-2); }
-  .admin-row-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; }
-  .admin-row-head strong{ font-size: 13px; color: var(--navy); }
-  .admin-remove{ background:none; border:none; color: var(--rose); font-size: 12px; cursor: pointer; font-weight: 600; }
-  .admin-pick{ margin-bottom: 12px; }
-  .admin-pick label{ display:block; font-size: 11px; color: var(--text-faint); margin-bottom: 4px; }
-  .admin-pick select{
-    width:100%; padding: 10px 11px; border: 1px solid var(--gold-soft); border-radius: 7px;
-    background: #fbf3e3; font-size: 13px; font-family: inherit; color: var(--text); font-weight: 600;
+  /* ---------- shortlist tray ---------- */
+  .tray{
+    position:sticky;bottom:0;background:var(--navy);color:var(--white);
+    padding:16px 0;margin-top:0;
   }
-  .admin-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 10px; }
-  .admin-grid label, .admin-plan-fields label{ display:block; font-size: 11px; color: var(--text-faint); margin-bottom: 4px; }
-  .admin-grid input, .admin-grid select, .admin-plan-fields input{
-    width:100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 7px;
-    background: var(--surface); font-size: 13px; font-family: inherit; color: var(--text);
+  .tray-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+  .tray-inner .tray-info{font-size:13.5px;}
+  .tray-inner .tray-info b{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;}
+  .tray-actions{display:flex;gap:10px;}
+  .tray-actions button{
+    padding:10px 20px;border-radius:20px;border:1px solid var(--white);
+    font-family:'Inter',sans-serif;font-size:13px;cursor:pointer;
   }
-  .admin-plan-fields{ margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); display:grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 10px; }
-  .admin-actions{ display:flex; gap: 12px; flex-wrap: wrap; margin: 18px 0 0; }
-  .btn-secondary{ background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px 18px; font-size: 13px; font-weight: 600; color: var(--navy); cursor: pointer; }
-  .btn-secondary:hover{ border-color: var(--gold); color: var(--gold); }
-  .btn-primary{ background: var(--navy); color: #fff; border:none; border-radius: var(--radius-sm); padding: 10px 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
-  .btn-primary:hover{ background: #16202d; }
-  .link-box{ display:flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
-  .link-box input{ flex:1; min-width: 220px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 7px; font-family:'IBM Plex Mono', monospace; font-size: 12px; background: var(--surface); color: var(--text); }
-  .admin-note{ font-size: 12px; color: var(--text-muted); background: var(--surface); border-radius: var(--radius-sm); padding: 12px 14px; margin-top: 16px; line-height: 1.65; }
+  .btn-primary{background:var(--gold);color:var(--navy);border-color:var(--gold)!important;font-weight:600;}
+  .btn-ghost{background:transparent;color:var(--white);}
+  .tray[hidden]{display:none;}
+
+  footer.site{padding:26px 0 40px;font-size:12.5px;color:var(--ink-soft);text-align:center;}
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
-<body>
+<body data-dev="danube">
 
 <header class="site">
-  <div class="wrap">
+  <div class="top-strip"></div>
+  <div class="wrap site-bar">
     <div class="brand">
       <div class="brand-mark">T</div>
-      <div class="brand-name">Taher Husain
-        <span>New Heights Real Estate · Dubai</span>
+      <div class="brand-text">
+        <div class="name">Taher Husain</div>
+        <div class="role">New Heights Real Estate &middot; Dubai</div>
       </div>
     </div>
-    <div class="site-cta">Select a developer to view its projects →</div>
+    <nav>
+      <a href="https://wa.me/971556472153">WhatsApp Taher</a>
+    </nav>
   </div>
 </header>
 
-<main class="wrap">
+<section class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Investment &amp; ROI Explorer &mdash; v2 (Danube &middot; Imtiaz &middot; IMAN)</div>
+    <h1>Tell us the budget. We'll show what it buys, and what it should return.</h1>
+    <p class="lead">Enter a client's budget (or the cash they have for a down payment) and we'll surface the unit types that fit it across every project on file, each with an estimated value at handover, projected rental income, ROI, and the real all-in cost.</p>
 
-  <section id="catalog">
-    <div class="hero">
-      <h1>Pick a developer. Pick a project. Tell us how you'd like to pay.</h1>
-      <p>Browse by developer, open a project to see the real payment structure and full cost of ownership in your own currency, then send your preferred payment plan straight to Taher — no spreadsheets, no guesswork.</p>
+    <div class="mode-toggle" id="modeToggle">
+      <button data-mode="budget" class="active">I know the property budget</button>
+      <button data-mode="dp">I only know the down payment amount</button>
     </div>
 
-    <div class="panel admin-panel" id="adminPanel">
-      <h3>Build a shortlist for a client</h3>
-      <p class="sub">Pick a developer and project for up to 6 options (or type in a custom one), then generate a link. That client will see only these — no browsing the full catalog.</p>
-
-      <div id="adminRows"></div>
-
-      <div class="admin-actions">
-        <button class="btn-secondary" id="addRowBtn">+ Add another property</button>
-        <button class="btn-primary" id="generateLinkBtn">Generate client link</button>
+    <div class="budget-panel" id="budgetPanel">
+      <div class="field" id="budgetField">
+        <label for="budgetInput">Client's budget (full property price)</label>
+        <input type="text" id="budgetInput" inputmode="numeric" placeholder="e.g. 1,500,000" value="1,500,000" />
       </div>
-
-      <div class="link-box" id="linkBox" style="display:none;">
-        <input type="text" id="linkOutput" readonly>
-        <button class="btn-secondary" id="copyLinkBtn">Copy link</button>
-        <button class="btn-secondary" id="shareLinkBtn">Share via WhatsApp</button>
-      </div>
-
-      <div class="admin-note">This link only works once this page is hosted at a public web address (your own site, Netlify, GitHub Pages, etc.). Right now it will point to <span class="mono" id="hostPreview"></span> — host the file once at a real URL, then every link you generate from that hosted page will open correctly for clients.</div>
-    </div>
-
-    <div class="section" style="padding-top:0;">
-      <div class="section-head">
-        <h2 id="catalogHeading">Available developers &amp; projects</h2>
-        <div class="count mono" id="propCount">27 options</div>
-      </div>
-      <div class="dev-list" id="grid"></div>
-    </div>
-  </section>
-
-  <section id="detail">
-    <button class="back-link" id="backBtn">← Back to all properties</button>
-
-    <div class="detail-header">
-      <div class="detail-visual" id="detailVisual"></div>
-      <div class="detail-info">
-        <div class="detail-developer" id="detailDeveloper"></div>
-        <h2 id="detailName"></h2>
-        <div class="detail-meta" id="detailMeta"></div>
-        <div class="detail-price">
-          <div class="price-block">
-            <small>Starting price</small>
-            <strong id="detailPrice"></strong>
-          </div>
-          <div class="price-block">
-            <small>Handover</small>
-            <strong id="detailHandover" style="color: var(--navy); font-size: 18px;"></strong>
-          </div>
-        </div>
+      <div class="field">
+        <label>Currency</label>
         <div class="currency-toggle" id="currencyToggle">
           <button data-cur="AED" class="active">AED</button>
           <button data-cur="USD">USD</button>
           <button data-cur="INR">INR</button>
         </div>
       </div>
+      <div class="field">
+        <label for="bedroomFilter">Unit type</label>
+        <select id="bedroomFilter">
+          <option value="ALL">Any</option>
+        </select>
+      </div>
+      <div class="dp-result" id="dpResult" style="display:none;"></div>
     </div>
-
-    <!-- FIXED COST BREAKDOWN -->
-    <div class="panel">
-      <h3>What this actually costs, all in</h3>
-      <p class="sub">Beyond the property price, these are paid at the time of booking / registration.</p>
-      <div class="cost-list" id="costList"></div>
-      <div class="cost-total">
-        <span>Price + fixed costs</span>
-        <span class="v" id="costTotal"></span>
-      </div>
-      <details class="cost-extra">
-        <summary>Other costs that can sometimes apply</summary>
-        <ul>
-          <li>Real estate agency commission — typically 2% of price + 5% VAT, if applicable to the deal</li>
-          <li>Developer NOC fee (resale properties only) — roughly AED 500–5,000, varies by developer</li>
-          <li>Mortgage arrangement &amp; property valuation fees — only if you're financing, roughly 1% of loan + AED 2,500–3,500</li>
-          <li>Service charges — an annual per-sqft maintenance fee set by the developer, starts after handover</li>
-        </ul>
-      </details>
-      <div class="cost-note">DLD fee, admin fee and title deed fee are standard Dubai Land Department charges and are fairly fixed. Everything above is indicative — always confirm exact figures with the developer or DLD before transferring funds.</div>
+    <div class="quick-presets" id="quickPresets">
+      Quick budgets:
+      <button data-amt="900000">AED 900K</button>
+      <button data-amt="1200000">AED 1.2M</button>
+      <button data-amt="1800000">AED 1.8M</button>
+      <button data-amt="2500000">AED 2.5M</button>
     </div>
+  </div>
+</section>
 
-    <!-- SPECIAL OFFER -->
-    <div class="panel offer-panel">
-      <span class="offer-badge">✦ Special offer for investment visits</span>
-      <p>Travelling from India to view or finalise this property? We'll arrange <strong>4 days / 3 nights hotel accommodation in Dubai</strong>, and your <strong>return flight cost will be reimbursed on the day your property booking is confirmed</strong>.</p>
-      <details>
-        <summary></summary>
-        <ol>
-          <li>Applies to one qualifying visit per client, for the purpose of viewing or booking a property through New Heights Real Estate.</li>
-          <li>Reimbursement is processed after the official booking form and first payment are completed with the developer.</li>
-          <li>Flight reimbursement is capped at economy-class fare and requires original receipts/boarding passes.</li>
-          <li>Hotel category and dates are arranged by New Heights Real Estate, subject to availability.</li>
-          <li>Offer applies to select projects — please confirm eligibility with Taher before booking your travel.</li>
-          <li>New Heights Real Estate reserves the right to amend or withdraw this offer at any time.</li>
-        </ol>
-      </details>
-    </div>
+<main class="wrap">
+  <div class="results-meta">
+    <h2>Matches for this budget</h2>
+    <div class="count" id="resultCount"></div>
+  </div>
 
-    <!-- LEDGER -->
-    <div class="panel">
-      <h3>Developer's standard payment plan</h3>
-      <p class="sub">This is the structure the developer publishes. Your custom request below doesn't have to match it exactly.</p>
-      <div class="ledger-rail" id="ledgerRail">
-        <div class="ledger-fill" id="ledgerFill"></div>
-        <div class="ledger-nodes" id="ledgerNodes"></div>
-      </div>
-      <div class="ledger-tags" id="ledgerTags"></div>
-    </div>
+  <div class="dev-tabs" id="devTabs"></div>
+  <div id="projectsContainer"></div>
 
-    <!-- REQUEST FORM -->
-    <div class="panel">
-      <h3>Tell us how you'd like to pay</h3>
-      <p class="sub">Select every structure you'd consider — we'll check what the developer can actually offer against it.</p>
-
-      <div class="chip-row" id="paymentChips">
-        <label class="chip"><input type="checkbox" value="Down payment"> Down payment</label>
-        <label class="chip"><input type="checkbox" value="Bullet payment"> Bullet payment</label>
-        <label class="chip"><input type="checkbox" value="Monthly payment"> Monthly payment</label>
-        <label class="chip"><input type="checkbox" value="On handover"> On handover</label>
-        <label class="chip"><input type="checkbox" value="Post-handover"> Post-handover</label>
-      </div>
-
-      <div class="form-grid">
-        <div class="field">
-          <label for="downpaymentInput">Amount available now</label>
-          <div class="input-row">
-            <span id="currencyTag1">AED</span>
-            <input type="number" id="downpaymentInput" placeholder="e.g. 300,000" min="0" step="1000">
-          </div>
-          <div class="hint">Whatever you can pay upfront — down payment or bullet payment.</div>
-        </div>
-        <div class="field">
-          <label for="monthlyInput">Comfortable monthly amount</label>
-          <div class="input-row">
-            <span id="currencyTag2">AED</span>
-            <input type="number" id="monthlyInput" placeholder="e.g. 8,000" min="0" step="500">
-          </div>
-          <div class="hint">For monthly or post-handover installments.</div>
-        </div>
-        <div class="field">
-          <label for="nameInput">Your name</label>
-          <div class="input-row"><input type="text" id="nameInput" placeholder="Full name"></div>
-        </div>
-        <div class="field">
-          <label for="phoneInput">Phone / WhatsApp</label>
-          <div class="input-row"><input type="text" id="phoneInput" placeholder="+91 or +971 number"></div>
-        </div>
-      </div>
-
-      <div class="field" style="margin-top:20px;">
-        <label for="notesInput">Anything else Taher should know</label>
-        <textarea id="notesInput" placeholder="e.g. flexible on handover date, need financing, travelling from Mumbai in October…"></textarea>
-      </div>
-
-      <div class="result-box" id="resultBox"></div>
-
-      <div class="send-row">
-        <button class="btn-send" id="sendBtn">💬 Send this requirement to Taher</button>
-        <span class="send-note">Opens WhatsApp with your details pre-filled — nothing is sent until you tap Send.</span>
-      </div>
-      <div class="send-note" style="margin-top:10px;">Your details are shared only with Taher Husain to follow up on this request.</div>
-    </div>
-
-    <div class="section">
-      <div class="section-head" style="margin-bottom:20px;">
-        <h2>Full schedule</h2>
-      </div>
-      <table>
-        <thead>
-          <tr><th>Stage</th><th style="text-align:right">% of price</th><th style="text-align:right">Amount</th></tr>
-        </thead>
-        <tbody id="scheduleBody"></tbody>
-      </table>
-    </div>
-  </section>
-
+  <p class="disclaimer">
+    Estimated value at handover, rental income, and ROI are indicative, based on comparable market data for each project's area
+    (DLD transaction records, Bayut/Property Monitor market reports, and recent listing data), not a developer guarantee or a formal
+    valuation. Actual appreciation, achievable rent, and service charges vary by unit, market conditions, and finishing. The "all-in"
+    price includes an estimated 4% DLD transfer fee and standard admin/registration costs &mdash; agency commission is not included.
+    A 10% down payment is shown as the lowest commonly seen in the market; whether a specific developer will accept 10% (versus their
+    published 20&ndash;50% structure) depends on that developer's management approval and is not guaranteed. Click "Assumptions" on
+    any project to see or adjust the appreciation and rental yield ranges used. Confirm final figures with the developer and a
+    RICS-qualified valuer before a client commits.
+  </p>
 </main>
 
-<div class="contact-strip">
-  <div class="wrap">
-    <div>
-      <h3>Ready to move on one of these?</h3>
-      <p>Message Taher directly with the property and figures you're looking at.</p>
-    </div>
-    <div class="contact-btns">
-      <a class="btn-wa" href="https://wa.me/971556472153?text=Hi%20Taher!%20I%20was%20checking%20the%20payment%20plan%20explorer%20and%20wanted%20to%20discuss%20a%20property." target="_blank" rel="noopener">💬 WhatsApp</a>
-      <a class="btn-call" href="tel:+971556472153">📞 Call</a>
+<div class="tray" id="tray" hidden>
+  <div class="wrap tray-inner">
+    <div class="tray-info"><b id="trayCount">0</b> properties shortlisted for this client</div>
+    <div class="tray-actions">
+      <button class="btn-ghost" id="clearTray">Clear</button>
+      <button class="btn-primary" id="sendTray">Send shortlist to Taher &rarr;</button>
     </div>
   </div>
 </div>
 
 <footer class="site">
-  <div class="wrap">
-    <div class="foot-name">
-      <span><strong>Taher Husain</strong> · Property Consultant, Dubai · New Heights Real Estate</span>
-      <button class="agent-link" id="adminToggle" type="button">⚙</button>
-    </div>
-    <div>Prices, fees and currency conversions are indicative and subject to the developer's final quotation at time of booking.</div>
-  </div>
+  Prices, projections and currency conversions are indicative. Data as listed by each developer, September 2026.
 </footer>
 
 <script>
-/* =====================================================================
-   PROPERTY DATA — all prices in AED (base currency). Grouped by
-   developer; projects sharing a "developer" value are shown together
-   under one click-to-expand row on the site.
-   ===================================================================== */
-const PROPERTIES = [
-  /* ---------------- Emaar Properties ---------------- */
-  {
-    id: "p1", name: "Marina Vista Residences", developer: "Emaar Properties", location: "Dubai Marina",
-    bedrooms: "2 BR", size: "1,150 sqft", price: 1850000, handover: "Q4 2027", accent: "#a97c34",
-    plan: { type: "milestone", booking: { percent: 10, label: "Booking / Reservation" },
-      milestones: [
-        { percent: 15, label: "20% construction complete" },
-        { percent: 15, label: "40% construction complete" },
-        { percent: 15, label: "60% construction complete" },
-        { percent: 15, label: "80% construction complete" },
-        { percent: 30, label: "On handover" }
-      ] }
-  },
-  {
-    id: "p7", name: "Downtown Opera Suites", developer: "Emaar Properties", location: "Downtown Dubai",
-    bedrooms: "2 BR", size: "1,320 sqft", price: 3400000, handover: "Ready", accent: "#a97c34",
-    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
-      milestones: [
-        { percent: 30, label: "Within 30 days of booking" },
-        { percent: 50, label: "On handover" }
-      ] }
-  },
+/* ============================================================
+   DATA LAYER
+   Add a new developer by pushing another object into DEVELOPERS.
+   Add a new project by pushing into a developer's `.projects` array.
+   Each project needs: unitTypes[] (from inventory) + market assumptions
+   (defaultAppreciationPct, yieldByType per unit type) used for the
+   handover value / rent / ROI estimate. `colorId` picks the accent
+   (see body[data-dev] rules in CSS) — reuse "danube"/"imtiaz"/"iman"
+   or add a new one for a new developer.
+   ============================================================ */
 
-  /* ---------------- Danube Properties ---------------- */
-  {
-    id: "d1", name: "Fashionz", developer: "Danube Properties", location: "Jumeirah Village Triangle (JVT)",
-    bedrooms: "Studio – 3 BR", size: "400 – 1,400 sqft", price: 679000, handover: "Q3 2026", accent: "#2f8f77",
-    plan: { type: "monthly", booking: { percent: 10, label: "Booking / Reservation" }, monthlyPercent: 1, months: 54 }
-  },
-  {
-    id: "d2", name: "Greenz", developer: "Danube Properties", location: "Dubai Academic City",
-    bedrooms: "Villas & Townhouses", size: "2,500 – 4,000 sqft", price: 3500000, handover: "Under construction", accent: "#2f8f77",
-    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
-      milestones: [
-        { percent: 15, label: "33% construction complete" },
-        { percent: 15, label: "66% construction complete" },
-        { percent: 15, label: "100% construction complete" }
-      ] , handoverOverride: true }
-  },
-  {
-    id: "d3", name: "Shahrukhz", developer: "Danube Properties", location: "Al Sufouh 1",
-    bedrooms: "Office & Residential Suites", size: "From 450 sqft", price: 2000000, handover: "Q2 2029", accent: "#2f8f77",
-    plan: { type: "posthandover", booking: { percent: 20, label: "Booking / Reservation" },
-      duringConstruction: { percent: 50, label: "During construction, in stages" },
-      postHandover: { percent: 30, years: 3, label: "Post-handover, equal monthly installments" } }
-  },
-  {
-    id: "d4", name: "Breez", developer: "Danube Properties", location: "Dubai Maritime City",
-    bedrooms: "Studio – 2 BR waterfront", size: "450 – 1,500 sqft", price: 857000, handover: "Q4 2028", accent: "#2f8f77",
-    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
-      milestones: [
-        { percent: 15, label: "20% construction complete" },
-        { percent: 15, label: "50% construction complete" },
-        { percent: 15, label: "80% construction complete" }
-      ] }
-  },
-  {
-    id: "d5", name: "Aspirz", developer: "Danube Properties", location: "Dubai Sports City",
-    bedrooms: "Studio Flex – 3 BR + offices", size: "400 – 1,800 sqft", price: 850000, handover: "Q4 2028", accent: "#2f8f77",
-    plan: { type: "monthly", booking: { percent: 10, label: "Booking / Reservation" }, monthlyPercent: 1, months: 60 }
-  },
-  {
-    id: "d6", name: "Sparklz", developer: "Danube Properties", location: "Al Furjan",
-    bedrooms: "Studio – 2 BR", size: "400 – 1,200 sqft", price: 900000, handover: "Under construction", accent: "#2f8f77",
-    plan: { type: "monthly", booking: { percent: 10, label: "Booking / Reservation" }, monthlyPercent: 1, months: 50 }
-  },
-  {
-    id: "d7", name: "Timez", developer: "Danube Properties", location: "Dubai Silicon Oasis",
-    bedrooms: "Studio – 2 BR convertible", size: "400 – 1,200 sqft", price: 800000, handover: "Under construction", accent: "#2f8f77",
-    plan: { type: "monthly", booking: { percent: 10, label: "Booking / Reservation" }, monthlyPercent: 1, months: 48 }
-  },
-  {
-    id: "d8", name: "Bayz 102", developer: "Danube Properties", location: "Business Bay",
-    bedrooms: "Studio – 3 BR", size: "400 – 2,000 sqft", price: 1270000, handover: "Q4 2029", accent: "#2f8f77",
-    plan: { type: "posthandover", booking: { percent: 20, label: "Booking / Reservation" },
-      duringConstruction: { percent: 49, label: "During construction, in stages" },
-      postHandover: { percent: 31, years: 3, label: "Post-handover, equal monthly installments" } }
-  },
-  {
-    id: "d9", name: "Oasiz", developer: "Danube Properties", location: "Dubai Silicon Oasis",
-    bedrooms: "Studio – 2 BR", size: "400 – 1,200 sqft", price: 775000, handover: "Q4 2027", accent: "#2f8f77",
-    plan: { type: "posthandover", booking: { percent: 20, label: "Booking / Reservation" },
-      duringConstruction: { percent: 44, label: "During construction, in stages" },
-      postHandover: { percent: 36, years: 2, label: "Post-handover, equal monthly installments" } }
-  },
-  {
-    id: "d10", name: "Diamondz", developer: "Danube Properties", location: "Jumeirah Lake Towers (JLT)",
-    bedrooms: "Studio – 2 BR", size: "400 – 1,400 sqft", price: 1100000, handover: "Q4 2027", accent: "#2f8f77",
-    plan: { type: "posthandover", booking: { percent: 20, label: "Booking / Reservation" },
-      duringConstruction: { percent: 49, label: "During construction, in stages" },
-      postHandover: { percent: 31, years: 2, label: "Post-handover, equal monthly installments" } }
-  },
+const WHATSAPP_NUMBER = "971556472153";
+const FX = { AED: 1, USD: 1/3.6725, INR: 23.55 };
+const CUR_SYMBOL = { AED: 'AED', USD: '$', INR: '\u20b9' };
+const ALL_IN_PCT = 6; // ~4% DLD transfer fee + ~2% admin/registration/trustee estimate
 
-  /* ---------------- Samana Developers ---------------- */
+const DEVELOPERS = [
   {
-    id: "s1", name: "Samana Imperial Garden", developer: "Samana Developers", location: "Arjan",
-    bedrooms: "Studio – 2 BR convertible", size: "424 – 1,256 sqft", price: 800000, handover: "Dec 2028", accent: "#a97c34",
-    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
-      milestones: [ { percent: 10, label: "During construction" } ] , handover: 70 }
+    id: "danube", name: "Danube Properties",
+    projects: [
+      {
+        id: "aspirz", name: "Aspirz by Danube", area: "Dubai Sports City", handover: "Q4 2028",
+        source: "PropertyFinder/Dubizzle listings & DLD data, Aug 2026; Sports City yield data via Oliva/DLD market reports",
+        defaultAppreciationPct: 18,
+        yieldByType: { "Studio": [7.5,8.5], "1 Bedroom": [7.0,8.0], "2 Bedroom": [6.5,7.5], "3 Bedroom": [6.0,7.0], "Office": [7.0,9.0] },
+        unitTypes: [
+          { unit_type: "Studio", count: 2, min_price: 939420, max_price: 939420, min_size: 388.9, max_size: 389.01 },
+          { unit_type: "1 Bedroom", count: 35, min_price: 1145460, max_price: 1598340, min_size: 489.32, max_size: 791.69 },
+          { unit_type: "2 Bedroom", count: 6, min_price: 1813560, max_price: 2117520, min_size: 848.08, max_size: 1011.16 },
+          { unit_type: "3 Bedroom", count: 4, min_price: 2450040, max_price: 2601000, min_size: 1312.98, max_size: 1326.87 },
+          { unit_type: "Office", count: 72, min_price: 1542240, max_price: 2069580, min_size: 637.44, max_size: 801.05 }
+        ]
+      },
+      {
+        id: "serenz", name: "Serenz by Danube", area: "Jumeirah Village Circle (JVC)", handover: "Q4 2029",
+        source: "Bayut/Dubizzle listings & DLD data, Jul-Aug 2026; JVC yield data via Bayut/Oliva market reports",
+        defaultAppreciationPct: 16,
+        yieldByType: { "Studio": [7.8,8.5], "1 Bedroom": [7.0,7.8], "2 Bedroom": [6.5,7.2], "2 Bedroom (Premium)": [6.0,6.8], "Retail": [7.0,8.0] },
+        unitTypes: [
+          { unit_type: "Studio", count: 44, min_price: 929220, max_price: 1091400, min_size: 382.01, max_size: 438.95 },
+          { unit_type: "1 Bedroom", count: 143, min_price: 1301520, max_price: 1800300, min_size: 538.08, max_size: 970.37 },
+          { unit_type: "2 Bedroom", count: 14, min_price: 1830900, max_price: 1913520, min_size: 852.83, max_size: 863.69 },
+          { unit_type: "2 Bedroom (Premium)", count: 3, min_price: 2654040, max_price: 2862120, min_size: 1478.85, max_size: 1535.8 },
+          { unit_type: "Retail", count: 10, min_price: 4697100, max_price: 8694480, min_size: 1204.37, max_size: 2367.63 }
+        ]
+      }
+    ]
   },
   {
-    id: "s2", name: "Samana Barari Heights", developer: "Samana Developers", location: "Dubai Land",
-    bedrooms: "Apartment & Duplex", size: "500 – 1,500 sqft", price: 893000, handover: "April 2028", accent: "#a97c34",
-    plan: { type: "posthandover", booking: { percent: 20, label: "Booking / Reservation" },
-      duringConstruction: { percent: 50, label: "During construction, in stages" },
-      postHandover: { percent: 30, years: 2, label: "Post-handover, equal monthly installments" } }
+    id: "imtiaz", name: "Imtiaz Developments",
+    projects: [
+      {
+        id: "rawdistrict2", name: "Raw District II by Imtiaz", area: "Downtown Jebel Ali", handover: "Q2 2029",
+        source: "Dubizzle/Bayut listings, Aug 2026; Downtown Jebel Ali yield data via Oliva/DLD market reports",
+        defaultAppreciationPct: 22,
+        yieldByType: { "Office": [7.0,9.0] },
+        unitTypes: [
+          { unit_type: "Office", count: 3, min_price: 2839913, max_price: 3277725, min_size: 1508.24, max_size: 1728.58 }
+        ]
+      },
+      {
+        id: "archive", name: "The Archive by Imtiaz", area: "Dubai Land Residence Complex (DLRC)", handover: "Q3 2028",
+        source: "Metropolitan/Dubizzle listings, Aug 2026; DLRC yield data via Oliva market reports",
+        defaultAppreciationPct: 15,
+        yieldByType: { "Studio": [8.5,9.5], "1 Bedroom": [7.0,9.0], "2 Bedroom": [7.0,9.0] },
+        unitTypes: [
+          { unit_type: "Studio", count: 5, min_price: 677209, max_price: 722415, min_size: 382.12, max_size: 484.05 },
+          { unit_type: "1 Bedroom", count: 3, min_price: 1141619, max_price: 1193699, min_size: 971.55, max_size: 1654.52 },
+          { unit_type: "2 Bedroom", count: 2, min_price: 1611218, max_price: 1625785, min_size: 1407.17, max_size: 1699.73 }
+        ]
+      }
+    ]
   },
   {
-    id: "s3", name: "Samana Boulevard Heights", developer: "Samana Developers", location: "DLRC – Wadi Al Safa",
-    bedrooms: "Studio – 2 BR, balcony pools", size: "450 – 1,530 sqft", price: 693000, handover: "Q4 2028", accent: "#a97c34",
-    plan: { type: "posthandover", booking: { percent: 10, label: "Booking / Reservation" },
-      duringConstruction: { percent: 55, label: "During construction, in stages" },
-      postHandover: { percent: 35, years: 3, label: "Post-handover, equal monthly installments" } }
-  },
-  {
-    id: "s4", name: "Samana Barari Avenue", developer: "Samana Developers", location: "Majan",
-    bedrooms: "Office & Retail", size: "393 – 3,345 sqft", price: 940000, handover: "Sep 2028", accent: "#a97c34",
-    plan: { type: "posthandover", booking: { percent: 20, label: "Booking / Reservation" },
-      duringConstruction: { percent: 45, label: "During construction, in stages" },
-      postHandover: { percent: 35, years: 2, label: "Post-handover, equal monthly installments" } }
-  },
-  {
-    id: "s5", name: "Samana Business Hub", developer: "Samana Developers", location: "Downtown Jebel Ali",
-    bedrooms: "Office Units", size: "610 – 1,572 sqft", price: 1460000, handover: "Q2 2029", accent: "#a97c34",
-    plan: { type: "posthandover", booking: { percent: 10, label: "Booking / Reservation" },
-      duringConstruction: { percent: 60, label: "During construction, in stages" },
-      postHandover: { percent: 30, years: 2, label: "Post-handover, equal monthly installments" } }
-  },
-
-  /* ---------------- Binghatti Developers ---------------- */
-  {
-    id: "b1", name: "Skyhall", developer: "Binghatti Developers", location: "Business Bay",
-    bedrooms: "Studio – 1 BR", size: "396 – 1,032 sqft", price: 975000, handover: "Q4 2026", accent: "#2f8f77",
-    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
-      milestones: [ { percent: 50, label: "During construction" } ], handover: 30 }
-  },
-  {
-    id: "b2", name: "Starlight", developer: "Binghatti Developers", location: "Al Jaddaf",
-    bedrooms: "Studio – 2 BR", size: "415 – 1,190 sqft", price: 850000, handover: "Ready", accent: "#2f8f77",
-    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
-      milestones: [ { percent: 50, label: "During construction" } ], handover: 30 }
-  },
-  {
-    id: "b3", name: "Hillviews", developer: "Binghatti Developers", location: "Dubai Science Park",
-    bedrooms: "Studio – 2 BR, private pool units", size: "410 – 1,300 sqft", price: 800000, handover: "Q1 2027", accent: "#2f8f77",
-    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
-      milestones: [ { percent: 50, label: "During construction" } ], handover: 30 }
-  },
-  {
-    id: "b4", name: "Haven", developer: "Binghatti Developers", location: "Dubai Sports City",
-    bedrooms: "Studio – 3 BR", size: "385 – 1,608 sqft", price: 720000, handover: "Ready", accent: "#2f8f77",
-    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
-      milestones: [ { percent: 50, label: "During construction" } ], handover: 30 }
-  },
-
-  /* ---------------- Imtiaz Developments ---------------- */
-  {
-    id: "i1", name: "Sea Cliff", developer: "Imtiaz Developments", location: "Dubai Islands",
-    bedrooms: "1 BR – 4 BR duplex", size: "730 – 3,500 sqft", price: 1995000, handover: "Q1 2028", accent: "#a97c34",
-    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
-      milestones: [ { percent: 30, label: "During construction (installments to Nov 2027)" } ], handover: 50 }
-  },
-  {
-    id: "i2", name: "Enre Residence", developer: "Imtiaz Developments", location: "Dubai South",
-    bedrooms: "Studio – 2 BR", size: "732 – 1,412 sqft", price: 1100000, handover: "Q3 2028", accent: "#a97c34",
-    plan: { type: "posthandover", booking: { percent: 20, label: "Booking / Reservation" },
-      duringConstruction: { percent: 40, label: "During construction, in stages" },
-      postHandover: { percent: 40, years: 2, label: "Post-handover, equal monthly installments" } }
-  },
-  {
-    id: "i3", name: "The Symphony", developer: "Imtiaz Developments", location: "Meydan Horizon (Bukadra)",
-    bedrooms: "1 BR – 3 BR + penthouses", size: "640 – 2,813 sqft", price: 2000000, handover: "Q2 2029", accent: "#a97c34",
-    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
-      milestones: [ { percent: 40, label: "During construction" } ], handover: 40 }
-  },
-  {
-    id: "i4", name: "Le Blanc", developer: "Imtiaz Developments", location: "Dubailand (DLRC)",
-    bedrooms: "Studio – 3 BR", size: "365 – 2,371 sqft", price: 690000, handover: "Q2 2028", accent: "#a97c34",
-    plan: { type: "posthandover", booking: { percent: 20, label: "Booking / Reservation" },
-      duringConstruction: { percent: 50, label: "During construction, in stages" },
-      postHandover: { percent: 30, years: 3, label: "Post-handover, equal monthly installments" } }
-  },
-  {
-    id: "i5", name: "Sunset Bay Grand", developer: "Imtiaz Developments", location: "Dubai Islands",
-    bedrooms: "1 BR – 3 BR duplex", size: "844 – 2,617 sqft", price: 1950000, handover: "Q4 2027", accent: "#a97c34",
-    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
-      milestones: [ { percent: 40, label: "During construction" } ], handover: 40 }
-  },
-  {
-    id: "i6", name: "Wynwood Horizon", developer: "Imtiaz Developments", location: "Meydan Horizon",
-    bedrooms: "1 BR – 2 BR", size: "750 – 1,050 sqft", price: 1690000, handover: "Q2 2028", accent: "#a97c34",
-    plan: { type: "milestone", booking: { percent: 20, label: "Booking / Reservation" },
-      milestones: [ { percent: 40, label: "During construction" } ], handover: 40 }
+    id: "iman", name: "IMAN Developers",
+    projects: [
+      {
+        id: "113residences", name: "113 Residences", area: "Al Sufouh", handover: "Q1/Q2 2029",
+        source: "Metropolitan/Dubizzle listings, Aug-Sep 2026; Al Sufouh yield data via Oliva market reports",
+        defaultAppreciationPct: 15,
+        yieldByType: { "1 Bedroom": [6.2,7.8], "2 Bedroom": [5.6,6.9], "3 Bedroom": [5.2,6.2], "4 Bedroom Duplex": [4.5,5.5] },
+        unitTypes: [
+          { unit_type: "1 Bedroom", count: 1, min_price: 2191188, max_price: 2191188, min_size: 913, max_size: 913 },
+          { unit_type: "2 Bedroom", count: 11, min_price: 2720255, max_price: 3181129, min_size: 1097, max_size: 1369 },
+          { unit_type: "3 Bedroom", count: 4, min_price: 4302434, max_price: 4426217, min_size: 2010, max_size: 2059 },
+          { unit_type: "4 Bedroom Duplex", count: 1, min_price: 5443094, max_price: 5443094, min_size: 2532, max_size: 2532 }
+        ]
+      },
+      {
+        id: "oneparksquare", name: "One Park Square by IMAN", area: "JVC District 11", handover: "Q2 2028",
+        source: "Bayut/Dubizzle listings, 2026; JVC yield data via Bayut/Oliva market reports",
+        defaultAppreciationPct: 16,
+        yieldByType: { "Studio": [7.8,8.5], "1 Bedroom": [7.0,7.8], "2 Bedroom": [6.5,7.2] },
+        unitTypes: [
+          { unit_type: "Studio", count: 2, min_price: 750000, max_price: 750000, min_size: 427.11, max_size: 427.11 },
+          { unit_type: "1 Bedroom", count: 1, min_price: 1233663, max_price: 1233663, min_size: 789.41, max_size: 789.41 },
+          { unit_type: "2 Bedroom", count: 1, min_price: 1850000, max_price: 1850000, min_size: 1216.52, max_size: 1216.52 }
+        ]
+      },
+      {
+        id: "oneskypark", name: "One Sky Park by IMAN", area: "JVC District 15", handover: "Q1 2028",
+        source: "IMAN inventory sheets, Sep 2026; JVC yield data via Bayut/Oliva market reports",
+        defaultAppreciationPct: 16,
+        yieldByType: { "1 Bedroom": [7.0,7.8] },
+        unitTypes: [
+          { unit_type: "1 Bedroom", count: 3, min_price: 1375000, max_price: 1468685, min_size: 903.31, max_size: 949.92 }
+        ]
+      },
+      {
+        id: "cascade15", name: "15 Cascade by IMAN", area: "Motor City", handover: "Q3 2028",
+        source: "IMAN inventory sheets, Sep 2026; Motor City yield data via Oliva/DLD market reports",
+        defaultAppreciationPct: 12,
+        yieldByType: { "Studio": [8.0,9.5], "1 Bedroom": [7.5,9.0] },
+        unitTypes: [
+          { unit_type: "Studio", count: 3, min_price: 879862, max_price: 908309, min_size: 422.81, max_size: 436.48 },
+          { unit_type: "1 Bedroom", count: 1, min_price: 1553420, max_price: 1553420, min_size: 841.41, max_size: 841.41 }
+        ]
+      }
+    ]
   }
 ];
 
-// Normalise the two shorthand milestone entries above (handover / handoverOverride)
-// into the same shape getStages() expects for every other project.
-PROPERTIES.forEach(p => {
-  if(p.plan.type === "milestone" && typeof p.plan.handover === "number"){
-    p.plan.milestones.push({ percent: p.plan.handover, label: "On handover" });
-    delete p.plan.handover;
-  }
-});
+/* ============================================================
+   STATE
+   ============================================================ */
+let currency = "AED";
+let mode = "budget"; // "budget" | "dp"
+let dpPct = 10;
+let activeDevIdx = 0;
+let shortlist = [];
+const projectAssumptionOverrides = {};
 
-/* =====================================================================
-   CLIENT SHORTLIST — if this page was opened via a link generated by
-   the "Build a shortlist" panel below, show only those properties.
-   ===================================================================== */
-let ACTIVE_PROPERTIES = PROPERTIES;
-let isClientView = false;
-try{
-  const listParam = new URLSearchParams(location.search).get("list");
-  if(listParam){
-    const decoded = JSON.parse(decodeURIComponent(escape(atob(listParam))));
-    if(Array.isArray(decoded) && decoded.length){
-      ACTIVE_PROPERTIES = decoded;
-      isClientView = true;
-    }
-  }
-}catch(e){ console.warn("Could not read shared shortlist, showing default catalog."); }
-
-/* =====================================================================
-   CURRENCY — indicative rates from AED. Update as needed.
-   ===================================================================== */
-const RATES = { AED: 1, USD: 0.2723, INR: 22.65 };
-const SYMBOLS = { AED: "AED", USD: "$", INR: "₹" };
-let selectedCurrency = "AED";
-
-function fmt(amountAED, currency){
-  currency = currency || selectedCurrency;
-  const val = amountAED * RATES[currency];
-  const locale = currency === "INR" ? "en-IN" : "en-US";
-  return SYMBOLS[currency] + " " + Math.round(val).toLocaleString(locale);
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function fmtMoney(aedValue){
+  const v = aedValue * FX[currency];
+  return CUR_SYMBOL[currency] + " " + Math.round(v).toLocaleString("en-US", {maximumFractionDigits:0});
 }
-function fmtPct(n){ return (Number.isInteger(n) ? n : n.toFixed(1)) + "%"; }
-function toAED(amount, currency){ return amount / RATES[currency]; }
-
-// Fixed government / admin costs (flat AED figures + DLD %)
-const DLD_PERCENT = 4;
-const ADMIN_FEE_AED = 4200;
-const TITLE_DEED_AED = 520;
-
-/* =====================================================================
-   PAYMENT STAGE HELPERS
-   ===================================================================== */
-function getStages(property){
-  const p = property.plan;
-  const stages = [];
-  stages.push({ percent: p.booking.percent, label: p.booking.label });
-
-  if(p.type === "milestone"){
-    p.milestones.forEach(m => stages.push({ percent: m.percent, label: m.label }));
-  } else if(p.type === "monthly"){
-    const totalMonthly = p.monthlyPercent * p.months;
-    stages.push({
-      percent: Math.round(totalMonthly * 10) / 10,
-      label: p.monthlyPercent + "% per month × " + p.months + " months (until handover)",
-      isMonthlySummary: true, monthlyPercent: p.monthlyPercent, months: p.months
-    });
-  } else if(p.type === "posthandover"){
-    stages.push({ percent: p.duringConstruction.percent, label: p.duringConstruction.label });
-    stages.push({
-      percent: p.postHandover.percent,
-      label: p.postHandover.label + " (" + p.postHandover.years + " yrs)",
-      isPostHandover: true, years: p.postHandover.years
-    });
+function parseNum(str){
+  const n = parseFloat(String(str).replace(/[^0-9.]/g, ""));
+  return isNaN(n) ? null : n;
+}
+function effectiveBudgetAED(){
+  if (mode === "budget") {
+    const raw = parseNum(document.getElementById("budgetInput").value);
+    return raw === null ? null : raw / FX[currency];
+  } else {
+    const dpRaw = parseNum(document.getElementById("dpInput").value);
+    if (dpRaw === null) return null;
+    const dpAED = dpRaw / FX[currency];
+    return dpAED / (dpPct/100);
   }
-  return stages;
 }
 
-/* =====================================================================
-   VISUAL (placeholder building silhouette)
-   ===================================================================== */
-function renderVisual(property){
-  const accent = property.accent || "#a97c34";
-  const seed = property.id.charCodeAt(1) || 1;
-  const bars = [];
-  const n = 6;
-  for(let i=0;i<n;i++){ bars.push(30 + ((seed * (i+3)) % 70)); }
-  const w = 400, h = 200, base = h - 20;
-  let rects = "";
-  const bw = w / n;
-  bars.forEach((bh, i) => {
-    const x = i * bw + 6;
-    const rh = (bh/100) * (base - 20);
-    rects += `<rect x="${x}" y="${base-rh}" width="${bw-12}" height="${rh}" rx="3" fill="none" stroke="${accent}" stroke-opacity="0.6" stroke-width="1.4"/>`;
-    const rows = Math.floor(rh/14);
-    for(let r=0;r<rows;r++){
-      rects += `<circle cx="${x+ (bw-12)/2}" cy="${base-rh+8+r*14}" r="1.3" fill="${accent}" fill-opacity="0.75"/>`;
-    }
+function computeMetrics(project, unit){
+  const appreciationPct = (projectAssumptionOverrides[project.id]?.appreciationPct) ?? project.defaultAppreciationPct;
+  const yieldRange = project.yieldByType[unit.unit_type] || [6.5,7.5];
+
+  const priceLow = unit.min_price, priceHigh = unit.max_price;
+  const valueAtHandoverLow = priceLow * (1 + appreciationPct/100);
+  const valueAtHandoverHigh = priceHigh * (1 + appreciationPct/100);
+  const rentLow = priceLow * (yieldRange[0]/100);
+  const rentHigh = priceHigh * (yieldRange[1]/100);
+  const grossYieldLabel = yieldRange[0].toFixed(1) + "\u2013" + yieldRange[1].toFixed(1) + "%";
+  const allInLow = priceLow * (1 + ALL_IN_PCT/100);
+  const allInHigh = priceHigh * (1 + ALL_IN_PCT/100);
+  const minDpLow = priceLow * (dpPct/100);
+  const minDpHigh = priceHigh * (dpPct/100);
+
+  return { appreciationPct, yieldRange, valueAtHandoverLow, valueAtHandoverHigh, rentLow, rentHigh, grossYieldLabel, allInLow, allInHigh, minDpLow, minDpHigh };
+}
+
+function unitMatchesBudget(unit, budgetAED){
+  if (budgetAED === null) return true;
+  const tolerance = 0.15;
+  const lo = unit.min_price * (1 - tolerance);
+  const hi = unit.max_price * (1 + tolerance);
+  return budgetAED >= lo && budgetAED <= hi;
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function populateBedroomFilter(){
+  const sel = document.getElementById("bedroomFilter");
+  const types = new Set();
+  DEVELOPERS.forEach(d => d.projects.forEach(p => p.unitTypes.forEach(u => types.add(u.unit_type))));
+  [...types].sort().forEach(t => {
+    const opt = document.createElement("option");
+    opt.value = t; opt.textContent = t;
+    sel.appendChild(opt);
   });
-  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" width="${w}" height="${h}" fill="#f5efe1"/>
-    <line x1="0" y1="${base}" x2="${w}" y2="${base}" stroke="${accent}" stroke-opacity="0.35" stroke-width="1"/>
-    ${rects}
-  </svg>`;
 }
 
-/* =====================================================================
-   RENDER: CATALOG — grouped by developer, click to expand
-   ===================================================================== */
-const grid = document.getElementById("grid");
-const propCount = document.getElementById("propCount");
-
-function renderCatalog(){
-  grid.innerHTML = "";
-  propCount.textContent = ACTIVE_PROPERTIES.length + " option" + (ACTIVE_PROPERTIES.length===1?"":"s");
-
-  const groups = new Map();
-  ACTIVE_PROPERTIES.forEach(p => {
-    if(!groups.has(p.developer)) groups.set(p.developer, []);
-    groups.get(p.developer).push(p);
+function renderDevTabs(){
+  const el = document.getElementById("devTabs");
+  el.innerHTML = "";
+  DEVELOPERS.forEach((dev, i) => {
+    const btn = document.createElement("button");
+    btn.className = i === activeDevIdx ? "active" : "";
+    btn.innerHTML = dev.name + ' <span class="n">(' + dev.projects.length + ' project' + (dev.projects.length!==1?'s':'') + ')</span>';
+    btn.onclick = () => { activeDevIdx = i; document.body.setAttribute("data-dev", dev.id); renderDevTabs(); renderProjects(); };
+    el.appendChild(btn);
   });
+}
 
-  let first = true;
-  groups.forEach((props, devName) => {
-    const accent = props[0].accent || "#a97c34";
-    const devEl = document.createElement("div");
-    devEl.className = "dev-group" + (first ? " open" : "");
-    first = false;
-    devEl.innerHTML = `
-      <button class="dev-header" type="button">
-        <div class="dev-header-left">
-          <div class="dev-badge" style="background:${accent}">${devName.charAt(0)}</div>
-          <div>
-            <div class="dev-name">${devName}</div>
-            <div class="dev-count">${props.length} project${props.length===1?'':'s'}</div>
-          </div>
+function isSelected(project, unit){
+  return shortlist.some(s => s.projectId === project.id && s.unitType === unit.unit_type);
+}
+
+function renderDPResult(){
+  const box = document.getElementById("dpResult");
+  if (mode !== "dp") { box.style.display = "none"; return; }
+  box.style.display = "block";
+  const dpRaw = parseNum(document.getElementById("dpInput").value);
+  if (dpRaw === null) { box.innerHTML = "Enter a down payment amount above."; return; }
+  const dpAED = dpRaw / FX[currency];
+  const impliedBudgetAED = dpAED / (dpPct/100);
+  box.innerHTML = `With ${fmtMoney(dpAED)} as a ${dpPct}% down payment, this client could reach a property of roughly <b>${fmtMoney(impliedBudgetAED)}</b>.
+    <span class="fine">10% is the lowest down payment commonly seen in this market &mdash; whether a specific developer accepts 10% instead of their published structure (often 20&ndash;50%) depends on that developer's management approval on a case-by-case basis, and isn't guaranteed.</span>`;
+}
+
+function renderProjects(){
+  const container = document.getElementById("projectsContainer");
+  container.innerHTML = "";
+  const budgetAED = effectiveBudgetAED();
+  const bedroomFilter = document.getElementById("bedroomFilter").value;
+  const dev = DEVELOPERS[activeDevIdx];
+  let totalMatches = 0;
+
+  dev.projects.forEach(project => {
+    const block = document.createElement("div");
+    block.className = "project";
+
+    const head = document.createElement("div");
+    head.className = "project-head";
+    head.innerHTML = `
+      <div>
+        <h3>${project.name}</h3>
+        <div class="meta">
+          <span>${project.area}</span>
+          <span>Handover ${project.handover}</span>
         </div>
-        <div class="dev-arrow">▾</div>
-      </button>
-      <div class="dev-projects"></div>
+      </div>
+      <button class="assumptions-btn" data-pid="${project.id}">Assumptions</button>
     `;
-    const projectsEl = devEl.querySelector(".dev-projects");
-    props.forEach(property => {
-      const card = document.createElement("button");
-      card.className = "card";
-      card.setAttribute("aria-label", "View payment plan for " + property.name);
-      card.innerHTML = `
-        <div class="card-visual">${renderVisual(property)}</div>
-        <div class="card-body">
-          <div class="card-developer">${property.developer}</div>
-          <h3 class="card-name">${property.name}</h3>
-          <div class="card-meta">
-            <span>${property.location}</span>
-            <span>${property.bedrooms}</span>
-            <span>${property.size}</span>
-          </div>
-          <div class="card-foot">
-            <div class="card-price"><small>From</small>${fmt(property.price, "AED")}</div>
-            <div class="card-arrow">View plan →</div>
-          </div>
+    block.appendChild(head);
+
+    const appreciationPct = (projectAssumptionOverrides[project.id]?.appreciationPct) ?? project.defaultAppreciationPct;
+    const assumpRow = document.createElement("div");
+    assumpRow.className = "assumptions-row";
+    assumpRow.id = "assump-" + project.id;
+    assumpRow.innerHTML = `
+      <div class="a-field">
+        <label>Appreciation to handover (%)</label>
+        <input type="number" min="0" max="60" step="1" value="${appreciationPct}" data-pid="${project.id}" class="appreciationInput" />
+      </div>
+      <div class="src">Default assumption for ${project.area}, based on recent Dubai off-plan appreciation trends for comparable-stage projects. Rental yield ranges per unit type and this appreciation figure sourced from: ${project.source}. Adjust either to match your own read of a specific deal.</div>
+    `;
+    block.appendChild(assumpRow);
+
+    const matchingUnits = project.unitTypes.filter(u => bedroomFilter === "ALL" || u.unit_type === bedroomFilter);
+
+    matchingUnits.forEach(unit => {
+      const inBudget = unitMatchesBudget(unit, budgetAED);
+      if (inBudget) totalMatches++;
+      const m = computeMetrics(project, unit);
+      const row = document.createElement("div");
+      row.className = "unit-row" + (inBudget ? "" : " dim");
+
+      const selected = isSelected(project, unit);
+      row.innerHTML = `
+        <div>
+          <div class="unit-type-name">${unit.unit_type}</div>
+          <div class="unit-type-sub">${unit.count} available &middot; ${Math.round(unit.min_size)}&ndash;${Math.round(unit.max_size)} sq ft</div>
+        </div>
+        <div>
+          <div class="metric-label">Price</div>
+          <div class="metric-value">${fmtMoney(unit.min_price)}${unit.min_price!==unit.max_price ? ' &ndash; ' + fmtMoney(unit.max_price) : ''}</div>
+          <div class="all-in">All-in from ${fmtMoney(m.allInLow)} &middot; 10% DP from ${fmtMoney(m.minDpLow)}</div>
+        </div>
+        <div>
+          <div class="metric-label">Est. value at handover</div>
+          <div class="metric-value">${fmtMoney(m.valueAtHandoverLow)}${m.valueAtHandoverLow!==m.valueAtHandoverHigh ? ' &ndash; ' + fmtMoney(m.valueAtHandoverHigh) : ''}</div>
+        </div>
+        <div>
+          <div class="metric-label">Est. annual rent</div>
+          <div class="metric-value">${fmtMoney(m.rentLow)}${m.rentLow!==m.rentHigh ? ' &ndash; ' + fmtMoney(m.rentHigh) : ''}</div>
+        </div>
+        <div>
+          <div class="metric-label">Gross rental yield</div>
+          <div class="metric-value roi">${m.grossYieldLabel}</div>
+        </div>
+        <div class="col-select">
+          <button class="select-btn ${selected ? 'selected' : ''}" data-pid="${project.id}" data-utype="${unit.unit_type}">
+            ${selected ? '\u2713 Shortlisted' : '+ Shortlist'}
+          </button>
         </div>
       `;
-      card.addEventListener("click", () => openDetail(property));
-      projectsEl.appendChild(card);
+      block.appendChild(row);
     });
-    devEl.querySelector(".dev-header").addEventListener("click", () => devEl.classList.toggle("open"));
-    grid.appendChild(devEl);
+
+    if (matchingUnits.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "no-match";
+      empty.textContent = "No unit type on file for this filter in " + project.name + ".";
+      block.appendChild(empty);
+    }
+
+    container.appendChild(block);
+  });
+
+  document.getElementById("resultCount").textContent = budgetAED === null
+    ? "Enter a budget to filter"
+    : totalMatches + " unit type" + (totalMatches!==1?'s':'') + " within range across " + dev.name;
+
+  container.querySelectorAll(".assumptions-btn").forEach(btn => {
+    btn.onclick = () => document.getElementById("assump-" + btn.dataset.pid).classList.toggle("open");
+  });
+  container.querySelectorAll(".appreciationInput").forEach(inp => {
+    inp.onchange = () => {
+      projectAssumptionOverrides[inp.dataset.pid] = { appreciationPct: parseFloat(inp.value) || 0 };
+      renderProjects();
+    };
+  });
+  container.querySelectorAll(".select-btn").forEach(btn => {
+    btn.onclick = () => {
+      const pid = btn.dataset.pid, utype = btn.dataset.utype;
+      const project = dev.projects.find(p => p.id === pid);
+      const unit = project.unitTypes.find(u => u.unit_type === utype);
+      const idx = shortlist.findIndex(s => s.projectId === pid && s.unitType === utype);
+      if (idx >= 0) {
+        shortlist.splice(idx, 1);
+      } else {
+        if (shortlist.length >= 6) { alert("You can shortlist up to 6 options for a client at a time."); return; }
+        shortlist.push({
+          devName: dev.name, projectId: pid, projectName: project.name, area: project.area,
+          unitType: utype, priceLabel: fmtMoney(unit.min_price) + (unit.min_price!==unit.max_price ? ' - ' + fmtMoney(unit.max_price) : ''),
+          handover: project.handover
+        });
+      }
+      renderProjects();
+      renderTray();
+    };
   });
 }
-renderCatalog();
-if(isClientView){
-  document.getElementById("catalogHeading").textContent = "Your shortlist";
+
+function renderTray(){
+  const tray = document.getElementById("tray");
+  if (shortlist.length === 0) { tray.hidden = true; return; }
+  tray.hidden = false;
+  document.getElementById("trayCount").textContent = shortlist.length;
 }
 
-/* =====================================================================
-   RENDER: DETAIL VIEW
-   ===================================================================== */
-const catalogEl = document.getElementById("catalog");
-const detailEl = document.getElementById("detail");
-let currentProperty = null;
-
-function openDetail(property){
-  currentProperty = property;
-  selectedCurrency = "AED";
-  document.querySelectorAll("#currencyToggle button").forEach(b => b.classList.toggle("active", b.dataset.cur === "AED"));
-
-  catalogEl.classList.add("hidden");
-  detailEl.classList.add("active");
-  window.scrollTo({top:0, behavior: "smooth"});
-
-  document.getElementById("detailVisual").innerHTML = renderVisual(property);
-  document.getElementById("detailDeveloper").textContent = property.developer;
-  document.getElementById("detailName").textContent = property.name;
-  document.getElementById("detailMeta").innerHTML =
-    `<span>${property.location}</span><span>${property.bedrooms}</span><span>${property.size}</span>`;
-  document.getElementById("detailHandover").textContent = property.handover;
-
-  document.getElementById("downpaymentInput").value = "";
-  document.getElementById("monthlyInput").value = "";
-  document.getElementById("nameInput").value = "";
-  document.getElementById("phoneInput").value = "";
-  document.getElementById("notesInput").value = "";
-  document.querySelectorAll("#paymentChips input").forEach(cb => { cb.checked = false; cb.closest(".chip").classList.remove("checked"); });
-
-  refreshCurrencyDisplays();
-  renderLedger(property);
-  renderSchedule(property, 0);
-  renderResult(property, 0, 0);
+function buildWhatsAppMessage(){
+  let msg = "Hi Taher, here's a shortlist based on my client's budget:\n\n";
+  shortlist.forEach((s, i) => {
+    msg += (i+1) + ". " + s.projectName + " (" + s.area + ") - " + s.unitType + "\n   " + s.priceLabel + " | Handover " + s.handover + "\n\n";
+  });
+  msg += "Can we go over these?";
+  return msg;
 }
 
-document.getElementById("backBtn").addEventListener("click", () => {
-  detailEl.classList.remove("active");
-  catalogEl.classList.remove("hidden");
-  window.scrollTo({top:0, behavior:"smooth"});
+/* ============================================================
+   EVENTS
+   ============================================================ */
+document.getElementById("modeToggle").addEventListener("click", (e) => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  mode = btn.dataset.mode;
+  document.querySelectorAll("#modeToggle button").forEach(b => b.classList.toggle("active", b === btn));
+  const budgetField = document.getElementById("budgetField");
+  const quickPresets = document.getElementById("quickPresets");
+  if (mode === "dp") {
+    budgetField.innerHTML = `
+      <label for="dpInput">Cash available for down payment</label>
+      <input type="text" id="dpInput" inputmode="numeric" placeholder="e.g. 150,000" value="150,000" />
+      <div class="hint">We'll estimate the property value this unlocks at a 10% down payment.</div>
+    `;
+    document.getElementById("dpInput").addEventListener("input", () => { renderDPResult(); renderProjects(); });
+    quickPresets.style.display = "none";
+  } else {
+    budgetField.innerHTML = `
+      <label for="budgetInput">Client's budget (full property price)</label>
+      <input type="text" id="budgetInput" inputmode="numeric" placeholder="e.g. 1,500,000" value="1,500,000" />
+    `;
+    document.getElementById("budgetInput").addEventListener("input", renderProjects);
+    quickPresets.style.display = "block";
+  }
+  renderDPResult();
+  renderProjects();
 });
 
 document.getElementById("currencyToggle").addEventListener("click", (e) => {
   const btn = e.target.closest("button");
-  if(!btn || !currentProperty) return;
-  selectedCurrency = btn.dataset.cur;
+  if (!btn) return;
+  const currentAED = effectiveBudgetAED();
+  currency = btn.dataset.cur;
   document.querySelectorAll("#currencyToggle button").forEach(b => b.classList.toggle("active", b === btn));
-  refreshCurrencyDisplays();
-  renderLedger(currentProperty);
-  handleInputs();
-});
-
-function refreshCurrencyDisplays(){
-  document.getElementById("detailPrice").textContent = fmt(currentProperty.price);
-  document.getElementById("currencyTag1").textContent = SYMBOLS[selectedCurrency];
-  document.getElementById("currencyTag2").textContent = SYMBOLS[selectedCurrency];
-  renderFixedCosts(currentProperty);
-}
-
-function renderFixedCosts(property){
-  const dldAED = property.price * DLD_PERCENT / 100;
-  const totalAED = dldAED + ADMIN_FEE_AED + TITLE_DEED_AED;
-  const list = document.getElementById("costList");
-  list.innerHTML = `
-    <div class="cost-row"><span class="k">DLD transfer fee<small>4% of purchase price, paid to Dubai Land Department</small></span><span class="v">${fmt(dldAED)}</span></div>
-    <div class="cost-row"><span class="k">Admin / registration fee<small>Trustee office admin charge</small></span><span class="v">${fmt(ADMIN_FEE_AED)}</span></div>
-    <div class="cost-row"><span class="k">Title deed fee<small>Issued on registration of ownership</small></span><span class="v">${fmt(TITLE_DEED_AED)}</span></div>
-  `;
-  document.getElementById("costTotal").textContent = fmt(property.price + totalAED);
-}
-
-function renderLedger(property){
-  const stages = getStages(property);
-  const nodesEl = document.getElementById("ledgerNodes");
-  const tagsEl = document.getElementById("ledgerTags");
-  nodesEl.innerHTML = "";
-  tagsEl.innerHTML = "";
-
-  let cum = 0;
-  const positions = [];
-  stages.forEach(s => { positions.push(cum); cum += s.percent; });
-  positions.push(cum);
-
-  positions.forEach(pos => {
-    const node = document.createElement("div");
-    node.className = "ledger-node";
-    node.style.left = Math.min(pos, 100) + "%";
-    node.dataset.pos = pos;
-    nodesEl.appendChild(node);
-  });
-
-  stages.forEach((s, i) => {
-    const pos = positions[i];
-    const tag = document.createElement("div");
-    tag.className = "ledger-tag";
-    tag.style.left = Math.min(pos, 96) + "%";
-    const amt = property.price * s.percent / 100;
-    tag.innerHTML = `<div class="pct">${fmtPct(s.percent)}</div><div class="amt">${fmt(amt)}</div><div class="lbl">${s.label}</div>`;
-    tagsEl.appendChild(tag);
-  });
-
-  document.getElementById("ledgerFill").style.width = "0%";
-}
-
-function renderSchedule(property, coveredCount){
-  const stages = getStages(property);
-  const body = document.getElementById("scheduleBody");
-  body.innerHTML = "";
-  stages.forEach((s, i) => {
-    const amt = property.price * s.percent / 100;
-    const tr = document.createElement("tr");
-    if(i < coveredCount) tr.classList.add("covered");
-    tr.innerHTML = `<td class="stage">${s.label}</td><td class="num">${fmtPct(s.percent)}</td><td class="num">${fmt(amt)}</td>`;
-    body.appendChild(tr);
-  });
-}
-
-/* =====================================================================
-   FIT CALCULATION — inputs are in selectedCurrency, converted to AED
-   to compare against the developer's stated AED plan.
-   ===================================================================== */
-function renderResult(property, downpaymentInput, monthlyBudgetInput){
-  const stages = getStages(property);
-  const price = property.price;
-  const box = document.getElementById("resultBox");
-
-  const downpayment = toAED(downpaymentInput, selectedCurrency);
-  const monthlyBudget = toAED(monthlyBudgetInput, selectedCurrency);
-
-  let remaining = downpayment;
-  let coveredCount = 0, coveredAmount = 0;
-
-  for(const s of stages){
-    if(s.isPostHandover) break;
-    if(s.isMonthlySummary) break;
-    const amt = price * s.percent / 100;
-    if(remaining >= amt){ remaining -= amt; coveredAmount += amt; coveredCount++; }
-    else break;
-  }
-
-  renderSchedule(property, coveredCount);
-
-  const coveredPct = stages.slice(0, coveredCount).reduce((a,s)=>a+s.percent,0);
-  document.getElementById("ledgerFill").style.width = Math.min(coveredPct,100) + "%";
-  document.querySelectorAll(".ledger-node").forEach(node=>{
-    const pos = parseFloat(node.dataset.pos);
-    node.classList.toggle("covered", pos <= coveredPct + 0.01);
-  });
-
-  const lines = [];
-  let statusText = "", statusWarn = false;
-  const nextStage = stages[coveredCount];
-
-  if(downpaymentInput <= 0 && monthlyBudgetInput <= 0){
-    statusText = "Enter your figures above to see what this plan means for you";
-    lines.push({k:"Starting price", v: fmt(price)});
-  } else {
-    lines.push({k:"Your amount available covers", v: fmt(coveredAmount) + " (" + fmtPct(coveredPct) + " of price)", hl:true});
-
-    if(coveredCount < stages.length){
-      if(nextStage.isMonthlySummary){
-        const need = price * nextStage.monthlyPercent / 100;
-        lines.push({k:"Next: monthly installments begin", v: fmt(need) + " / month"});
-        if(monthlyBudgetInput > 0){
-          if(monthlyBudget >= need) statusText = "Your monthly budget comfortably covers this plan";
-          else { statusText = "Monthly budget is short by " + fmt(need - monthlyBudget) + " / month"; statusWarn = true; }
-        }
-      } else if(nextStage.isPostHandover){
-        const emiTotal = price * nextStage.percent / 100;
-        const months = nextStage.years * 12;
-        const emi = emiTotal / months;
-        lines.push({k:"Post-handover balance", v: fmt(emiTotal)});
-        lines.push({k:"Required EMI over " + months + " months", v: fmt(emi) + " / month", hl:true});
-        if(monthlyBudgetInput > 0){
-          if(monthlyBudget >= emi){
-            const payoffMonths = Math.ceil(emiTotal / monthlyBudget);
-            statusText = "Your budget covers this — paid off in " + payoffMonths + " months (~" + (payoffMonths/12).toFixed(1) + " yrs)";
-          } else { statusText = "Monthly budget is short by " + fmt(emi - monthlyBudget) + " / month for the standard term"; statusWarn = true; }
-        }
-      } else {
-        const shortfall = (price * nextStage.percent/100) - remaining;
-        lines.push({k:"Remaining for next stage: " + nextStage.label, v: fmt(shortfall) + " short"});
-        statusText = "Amount available doesn't fully cover the next milestone";
-        statusWarn = true;
-      }
+  if (currentAED !== null) {
+    if (mode === "budget") {
+      document.getElementById("budgetInput").value = Math.round(currentAED * FX[currency]).toLocaleString("en-US");
     } else {
-      statusText = "Your amount available covers the full pre-handover schedule";
+      const dpAED = currentAED * (dpPct/100);
+      document.getElementById("dpInput").value = Math.round(dpAED * FX[currency]).toLocaleString("en-US");
     }
   }
-
-  box.innerHTML = `
-    <div class="status"><span class="status-dot ${statusWarn?'warn':''}"></span>${statusText}</div>
-    <div class="result-lines">${lines.map(l => `<div class="result-line"><span class="k">${l.k}</span><span class="v ${l.hl?'hl':''}">${l.v}</span></div>`).join("")}</div>
-  `;
-}
-
-document.getElementById("downpaymentInput").addEventListener("input", handleInputs);
-document.getElementById("monthlyInput").addEventListener("input", handleInputs);
-
-function handleInputs(){
-  if(!currentProperty) return;
-  const dp = parseFloat(document.getElementById("downpaymentInput").value) || 0;
-  const mb = parseFloat(document.getElementById("monthlyInput").value) || 0;
-  renderResult(currentProperty, dp, mb);
-}
-
-/* payment-type chips */
-document.getElementById("paymentChips").addEventListener("change", (e) => {
-  const cb = e.target;
-  cb.closest(".chip").classList.toggle("checked", cb.checked);
+  renderDPResult();
+  renderProjects();
 });
 
-/* =====================================================================
-   SEND REQUIREMENT TO TAHER (WhatsApp deep link)
-   ===================================================================== */
-document.getElementById("sendBtn").addEventListener("click", () => {
-  if(!currentProperty) return;
-  const types = Array.from(document.querySelectorAll("#paymentChips input:checked")).map(cb => cb.value);
-  const dp = document.getElementById("downpaymentInput").value;
-  const mb = document.getElementById("monthlyInput").value;
-  const name = document.getElementById("nameInput").value.trim() || "Not provided";
-  const phone = document.getElementById("phoneInput").value.trim() || "Not provided";
-  const notes = document.getElementById("notesInput").value.trim() || "None";
-  const sym = SYMBOLS[selectedCurrency];
+document.getElementById("budgetInput").addEventListener("input", renderProjects);
+document.getElementById("bedroomFilter").addEventListener("change", renderProjects);
 
-  const lines = [
-    `Hi Taher, I'd like to discuss a payment plan for *${currentProperty.name}* (${currentProperty.developer}).`,
-    `Currency: ${selectedCurrency}`,
-    `Preferred structure: ${types.length ? types.join(", ") : "Not specified"}`,
-    `Amount available now: ${dp ? sym + " " + Number(dp).toLocaleString("en-US") : "Not specified"}`,
-    `Comfortable monthly amount: ${mb ? sym + " " + Number(mb).toLocaleString("en-US") : "Not specified"}`,
-    `Name: ${name}`,
-    `Phone: ${phone}`,
-    `Notes: ${notes}`
-  ];
-  const text = encodeURIComponent(lines.join("\n"));
-  window.open(`https://wa.me/971556472153?text=${text}`, "_blank", "noopener");
+document.getElementById("quickPresets").addEventListener("click", (e) => {
+  const btn = e.target.closest("button");
+  if (!btn || !btn.dataset.amt) return;
+  currency = "AED";
+  document.querySelectorAll("#currencyToggle button").forEach(b => b.classList.toggle("active", b.dataset.cur === "AED"));
+  document.getElementById("budgetInput").value = Number(btn.dataset.amt).toLocaleString("en-US");
+  renderProjects();
 });
 
-/* =====================================================================
-   AGENT SHORTLIST BUILDER (hidden automatically when a client opens
-   a generated link — see isClientView above). Access is a small "⚙"
-   link tucked next to Taher's name in the footer — not called out as
-   agent-only, so it stays unobtrusive while a client is browsing.
-   ===================================================================== */
-if(!isClientView){
-  const adminToggle = document.getElementById("adminToggle");
-  const adminPanel = document.getElementById("adminPanel");
-  const rowsContainer = document.getElementById("adminRows");
-  document.getElementById("hostPreview").textContent = location.origin + location.pathname;
+document.getElementById("clearTray").addEventListener("click", () => {
+  shortlist = [];
+  renderProjects();
+  renderTray();
+});
 
-  adminToggle.addEventListener("click", () => {
-    adminPanel.classList.toggle("open");
-    if(adminPanel.classList.contains("open")) adminPanel.scrollIntoView({ behavior: "smooth", block: "start" });
-  });
+document.getElementById("sendTray").addEventListener("click", () => {
+  const msg = buildWhatsAppMessage();
+  window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(msg), "_blank");
+});
 
-  let rowCounter = 0;
-
-  function projectPickerOptions(){
-    const groups = new Map();
-    PROPERTIES.forEach(p => {
-      if(!groups.has(p.developer)) groups.set(p.developer, []);
-      groups.get(p.developer).push(p);
-    });
-    let html = `<option value="">— Choose a project (or leave blank for custom) —</option>`;
-    groups.forEach((props, devName) => {
-      html += `<optgroup label="${devName}">`;
-      props.forEach(p => { html += `<option value="${p.id}">${p.name} — ${p.location}</option>`; });
-      html += `</optgroup>`;
-    });
-    return html;
-  }
-
-  function rowTemplate(i){
-    return `
-    <div class="admin-row" data-idx="${i}">
-      <div class="admin-row-head"><strong>Property ${i+1}</strong><button class="admin-remove" data-remove="${i}" type="button">Remove</button></div>
-
-      <div class="admin-pick">
-        <label>Pick from catalog</label>
-        <select data-field="projectPick" data-idx="${i}">${projectPickerOptions()}</select>
-      </div>
-
-      <div class="admin-grid">
-        <div><label>Project name</label><input data-field="name" data-idx="${i}" placeholder="e.g. Fashionz"></div>
-        <div><label>Developer</label><input data-field="developer" data-idx="${i}" placeholder="e.g. Danube Properties"></div>
-        <div><label>Location</label><input data-field="location" data-idx="${i}" placeholder="e.g. JVT"></div>
-        <div><label>Bedrooms</label><input data-field="bedrooms" data-idx="${i}" placeholder="e.g. Studio – 2 BR"></div>
-        <div><label>Size</label><input data-field="size" data-idx="${i}" placeholder="e.g. 400 – 1,200 sqft"></div>
-        <div><label>Price (AED)</label><input type="number" data-field="price" data-idx="${i}" placeholder="e.g. 850000"></div>
-        <div><label>Handover</label><input data-field="handoverDate" data-idx="${i}" placeholder="e.g. Q4 2027 or Ready"></div>
-        <div><label>Payment plan type</label>
-          <select data-field="type" data-idx="${i}">
-            <option value="milestone">Milestone (construction-linked)</option>
-            <option value="monthly">Monthly until handover</option>
-            <option value="posthandover">Post-handover installments</option>
-          </select>
-        </div>
-      </div>
-      <div class="admin-plan-fields" data-plantype="milestone" data-idx="${i}">
-        <div><label>Booking %</label><input type="number" data-field="booking" data-idx="${i}" placeholder="10"></div>
-        <div><label>No. of construction milestones</label><input type="number" data-field="milestoneCount" data-idx="${i}" placeholder="0"></div>
-        <div><label>Handover %</label><input type="number" data-field="handover" data-idx="${i}" placeholder="90"></div>
-      </div>
-      <div class="admin-plan-fields" data-plantype="monthly" data-idx="${i}" style="display:none;">
-        <div><label>Booking %</label><input type="number" data-field="booking" data-idx="${i}" placeholder="10"></div>
-        <div><label>% per month</label><input type="number" step="0.1" data-field="monthlyPercent" data-idx="${i}" placeholder="1"></div>
-        <div><label>Number of months</label><input type="number" data-field="months" data-idx="${i}" placeholder="42"></div>
-      </div>
-      <div class="admin-plan-fields" data-plantype="posthandover" data-idx="${i}" style="display:none;">
-        <div><label>Booking %</label><input type="number" data-field="booking" data-idx="${i}" placeholder="20"></div>
-        <div><label>During construction %</label><input type="number" data-field="during" data-idx="${i}" placeholder="50"></div>
-        <div><label>Post-handover %</label><input type="number" data-field="post" data-idx="${i}" placeholder="30"></div>
-        <div><label>Post-handover years</label><input type="number" data-field="years" data-idx="${i}" placeholder="2"></div>
-      </div>
-    </div>`;
-  }
-
-  function addRow(){
-    if(rowsContainer.querySelectorAll(".admin-row").length >= 6){
-      alert("A shortlist link can hold a maximum of 6 properties — send a second link for more.");
-      return;
-    }
-    rowsContainer.insertAdjacentHTML("beforeend", rowTemplate(rowCounter));
-    rowCounter++;
-  }
-  addRow(); addRow();
-  document.getElementById("addRowBtn").addEventListener("click", addRow);
-
-  function showPlanGroup(rowEl, idx, type){
-    rowEl.querySelectorAll(`.admin-plan-fields[data-idx="${idx}"]`).forEach(g => {
-      g.style.display = g.dataset.plantype === type ? "" : "none";
-    });
-  }
-
-  function fillRowFromProject(rowEl, idx, projectId){
-    const project = PROPERTIES.find(p => p.id === projectId);
-    if(!project) return;
-    const setVal = (field, value) => {
-      const el = rowEl.querySelector(`[data-field="${field}"][data-idx="${idx}"]`);
-      if(el) el.value = value;
-    };
-    setVal("name", project.name);
-    setVal("developer", project.developer);
-    setVal("location", project.location);
-    setVal("bedrooms", project.bedrooms);
-    setVal("size", project.size);
-    setVal("price", project.price);
-    setVal("handoverDate", project.handover);
-
-    const typeSelect = rowEl.querySelector(`select[data-field="type"][data-idx="${idx}"]`);
-    typeSelect.value = project.plan.type;
-    showPlanGroup(rowEl, idx, project.plan.type);
-
-    if(project.plan.type === "milestone"){
-      setVal("booking", project.plan.booking.percent);
-      setVal("milestoneCount", project.plan.milestones.length);
-      const last = project.plan.milestones[project.plan.milestones.length - 1];
-      setVal("handover", last ? last.percent : 0);
-    } else if(project.plan.type === "monthly"){
-      setVal("booking", project.plan.booking.percent);
-      setVal("monthlyPercent", project.plan.monthlyPercent);
-      setVal("months", project.plan.months);
-    } else if(project.plan.type === "posthandover"){
-      setVal("booking", project.plan.booking.percent);
-      setVal("during", project.plan.duringConstruction.percent);
-      setVal("post", project.plan.postHandover.percent);
-      setVal("years", project.plan.postHandover.years);
-    }
-  }
-
-  rowsContainer.addEventListener("change", (e) => {
-    if(e.target.matches('select[data-field="type"]')){
-      const idx = e.target.dataset.idx;
-      showPlanGroup(rowsContainer.querySelector(`.admin-row[data-idx="${idx}"]`), idx, e.target.value);
-    }
-    if(e.target.matches('select[data-field="projectPick"]')){
-      const idx = e.target.dataset.idx;
-      const rowEl = rowsContainer.querySelector(`.admin-row[data-idx="${idx}"]`);
-      if(e.target.value) fillRowFromProject(rowEl, idx, e.target.value);
-    }
-  });
-
-  rowsContainer.addEventListener("click", (e) => {
-    if(e.target.matches("[data-remove]")){
-      const idx = e.target.dataset.remove;
-      const row = rowsContainer.querySelector(`.admin-row[data-idx="${idx}"]`);
-      if(row) row.remove();
-    }
-  });
-
-  function buildPropertyFromRow(rowEl, i){
-    const idx = rowEl.dataset.idx;
-    const field = (f) => { const el = rowEl.querySelector(`.admin-grid [data-field="${f}"][data-idx="${idx}"]`); return el ? el.value.trim() : ""; };
-    const type = rowEl.querySelector(`select[data-field="type"][data-idx="${idx}"]`).value;
-    const planGroup = rowEl.querySelector(`.admin-plan-fields[data-plantype="${type}"][data-idx="${idx}"]`);
-    const pfield = (f) => { const el = planGroup.querySelector(`[data-field="${f}"]`); return el ? el.value : ""; };
-
-    const price = parseFloat(field("price")) || 0;
-    let plan, totalPct;
-
-    if(type === "milestone"){
-      const booking = parseFloat(pfield("booking")) || 0;
-      const handover = parseFloat(pfield("handover")) || 0;
-      const count = parseInt(pfield("milestoneCount")) || 0;
-      const remainder = Math.max(0, 100 - booking - handover);
-      const milestones = [];
-      if(count > 0){
-        const each = Math.round((remainder/count) * 10) / 10;
-        for(let m=1; m<=count; m++) milestones.push({ percent: each, label: "Construction milestone " + m });
-      }
-      milestones.push({ percent: handover, label: "On handover" });
-      plan = { type: "milestone", booking: { percent: booking, label: "Booking / Reservation" }, milestones };
-      totalPct = booking + (count>0 ? Math.round((remainder/count)*10)/10*count : 0) + handover;
-    } else if(type === "monthly"){
-      const booking = parseFloat(pfield("booking")) || 0;
-      const monthlyPercent = parseFloat(pfield("monthlyPercent")) || 0;
-      const months = parseInt(pfield("months")) || 0;
-      plan = { type: "monthly", booking: { percent: booking, label: "Booking / Reservation" }, monthlyPercent, months };
-      totalPct = booking + monthlyPercent*months;
-    } else {
-      const booking = parseFloat(pfield("booking")) || 0;
-      const during = parseFloat(pfield("during")) || 0;
-      const post = parseFloat(pfield("post")) || 0;
-      const years = parseInt(pfield("years")) || 1;
-      plan = { type: "posthandover", booking: { percent: booking, label: "Booking / Reservation" },
-        duringConstruction: { percent: during, label: "During construction, in stages" },
-        postHandover: { percent: post, years, label: "Post-handover, equal monthly installments" } };
-      totalPct = booking + during + post;
-    }
-
-    if(Math.round(totalPct) !== 100){
-      console.warn(`Property ${i+1}: payment stages add up to ${totalPct}%, not 100%. Double-check the figures.`);
-    }
-
-    return {
-      id: "c" + i, name: field("name") || "Untitled property", developer: field("developer") || "—",
-      location: field("location") || "—", bedrooms: field("bedrooms") || "—", size: field("size") || "—",
-      price, handover: field("handoverDate") || "TBC", accent: i % 2 === 0 ? "#a97c34" : "#2f8f77", plan
-    };
-  }
-
-  document.getElementById("generateLinkBtn").addEventListener("click", () => {
-    const rowEls = Array.from(rowsContainer.querySelectorAll(".admin-row"));
-    if(!rowEls.length){ alert("Add at least one property first."); return; }
-
-    const list = rowEls.map((rowEl, i) => buildPropertyFromRow(rowEl, i));
-    const missingPrice = list.some(p => !p.price);
-    if(missingPrice && !confirm("At least one property is missing a price. Generate the link anyway?")) return;
-
-    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(list))));
-    const url = location.origin + location.pathname + "?list=" + encoded;
-
-    const linkBox = document.getElementById("linkBox");
-    const linkOutput = document.getElementById("linkOutput");
-    linkOutput.value = url;
-    linkBox.style.display = "flex";
-  });
-
-  document.getElementById("copyLinkBtn").addEventListener("click", () => {
-    const linkOutput = document.getElementById("linkOutput");
-    linkOutput.select();
-    linkOutput.setSelectionRange(0, 99999);
-    try{
-      navigator.clipboard.writeText(linkOutput.value);
-    }catch(e){
-      document.execCommand("copy");
-    }
-  });
-
-  document.getElementById("shareLinkBtn").addEventListener("click", () => {
-    const link = document.getElementById("linkOutput").value;
-    if(!link) return;
-    const text = encodeURIComponent("Hi! Here are a few property options with full payment plan details — take a look and let me know your preferred structure: " + link);
-    window.open(`https://wa.me/?text=${text}`, "_blank", "noopener");
-  });
-} else {
-  document.getElementById("adminToggle").style.display = "none";
-}
+/* ============================================================
+   INIT
+   ============================================================ */
+populateBedroomFilter();
+document.body.setAttribute("data-dev", DEVELOPERS[activeDevIdx].id);
+renderDevTabs();
+renderProjects();
+renderTray();
 </script>
 </body>
 </html>

@@ -28,6 +28,7 @@
   body[data-dev="iman"]{ --accent:#9C7A2E; --accent-soft:#F5EFDF; }
   body[data-dev="binghatti"]{ --accent:#3A2E22; --accent-soft:#ECE7DE; }
   body[data-dev="samana"]{ --accent:#1F6F5C; --accent-soft:#E5F1EE; }
+  body[data-dev="azizi"]{ --accent:#8E1F3B; --accent-soft:#F5E7EA; }
 
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -52,7 +53,7 @@
     border-bottom:1px solid var(--line);
     background:var(--white);
   }
-  .top-strip{height:5px;background:linear-gradient(90deg,#1F5FA8 0 20%,#7C1F2B 20% 40%,#9C7A2E 40% 60%,#3A2E22 60% 80%,#1F6F5C 80% 100%);}
+  .top-strip{height:5px;background:linear-gradient(90deg,#1F5FA8 0 16.6%,#7C1F2B 16.6% 33.3%,#9C7A2E 33.3% 50%,#3A2E22 50% 66.6%,#1F6F5C 66.6% 83.3%,#8E1F3B 83.3% 100%);}
   .site-bar{
     display:flex;align-items:center;justify-content:space-between;
     padding:16px 0;flex-wrap:wrap;gap:12px;
@@ -1974,6 +1975,120 @@ const DEVELOPERS = [
                                         "max_price": 10448616,
                                         "min_size": 615.7,
                                         "max_size": 2574.3
+                                }
+                        ]
+                }
+        ]
+},
+  {
+        "id": "azizi",
+        "name": "Azizi Developments",
+        "projects": [
+                {
+                        "id": "burjazizi",
+                        "name": "Burj Azizi",
+                        "area": "Sheikh Zayed Road",
+                        "handover": "Q4 2029",
+                        "source": "Azizi Developments official price list (Burj Azizi), Sep 2026; Sheikh Zayed Road yield data via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 15,
+                        "yieldByType": {
+                                "1 Bedroom": [
+                                        5.0,
+                                        6.0
+                                ],
+                                "1 Bedroom+Study": [
+                                        4.8,
+                                        5.8
+                                ],
+                                "2 Bedroom": [
+                                        4.5,
+                                        5.5
+                                ],
+                                "3 Bedroom": [
+                                        4.0,
+                                        5.0
+                                ],
+                                "Penthouse-1 BR": [
+                                        3.5,
+                                        4.5
+                                ],
+                                "Penthouse-3 BR": [
+                                        3.0,
+                                        4.0
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 12,
+                                        "min_price": 5143000,
+                                        "max_price": 7494000,
+                                        "min_size": 788.89,
+                                        "max_size": 1066.6
+                                },
+                                {
+                                        "unit_type": "1 Bedroom+Study",
+                                        "count": 20,
+                                        "min_price": 5273000,
+                                        "max_price": 7775000,
+                                        "min_size": 984.91,
+                                        "max_size": 1127.64
+                                },
+                                {
+                                        "unit_type": "2 Bedroom",
+                                        "count": 8,
+                                        "min_price": 9344000,
+                                        "max_price": 10668000,
+                                        "min_size": 1286.94,
+                                        "max_size": 1506.21
+                                },
+                                {
+                                        "unit_type": "3 Bedroom",
+                                        "count": 1,
+                                        "min_price": 14619000,
+                                        "max_price": 14619000,
+                                        "min_size": 2034.83,
+                                        "max_size": 2034.83
+                                },
+                                {
+                                        "unit_type": "Penthouse-1 BR",
+                                        "count": 1,
+                                        "min_price": 22052000,
+                                        "max_price": 22052000,
+                                        "min_size": 1709.0,
+                                        "max_size": 1709.0
+                                },
+                                {
+                                        "unit_type": "Penthouse-3 BR",
+                                        "count": 1,
+                                        "min_price": 45394000,
+                                        "max_price": 45394000,
+                                        "min_size": 4626.58,
+                                        "max_size": 4626.58
+                                }
+                        ]
+                },
+                {
+                        "id": "azizivenice",
+                        "name": "Azizi Venice",
+                        "area": "Dubai South",
+                        "handover": "Q1 2026",
+                        "source": "Azizi Developments official price list (Azizi Venice, 1-Bedroom availability), Sep 2026; Dubai South yield data via Oliva/Bayut/DLD market reports",
+                        "defaultAppreciationPct": 18,
+                        "yieldByType": {
+                                "1 Bedroom": [
+                                        7.5,
+                                        8.8
+                                ]
+                        },
+                        "unitTypes": [
+                                {
+                                        "unit_type": "1 Bedroom",
+                                        "count": 1000,
+                                        "min_price": 1230000,
+                                        "max_price": 1338000,
+                                        "min_size": 609.89,
+                                        "max_size": 886.31
                                 }
                         ]
                 }
